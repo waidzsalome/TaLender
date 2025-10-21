@@ -1,4 +1,4 @@
-const { authMiddleware } = require("./middleware/auth");
+const { authMiddleware } = require("./middleware/Auth");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -219,7 +219,7 @@ app.get("/api/skills", authMiddleware, async (req, res) => {
   });
   
 
-app.get("/api/categories", authMiddleware, async (req, res) => {
+app.get("/api/categories", async (req, res) => {
     try {
         const cat = await Category.find();
         if (!cat) {

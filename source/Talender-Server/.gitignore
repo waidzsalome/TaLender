@@ -1,3 +1,16 @@
-source/Talender-Server/secret.js
-Talender-Server/secret.js
+# Ignore secrets
 **/secret.js
+
+# Dependencies
+node_modules/
+
+# OS junk
+.DS_Store
+
+# Logs and temp files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional: only ignore package-lock if you want to regenerate it freely
+# package-lock.json
