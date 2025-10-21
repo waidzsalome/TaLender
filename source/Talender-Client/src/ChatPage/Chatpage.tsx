@@ -43,8 +43,8 @@ const ChatPage: React.FC = () => {
     setCurUserID(1);
   }, [curUserID]);
   return (
-    <Container>
-      <Box sx={{ height: "90vh" }}>
+    <Container sx={{ height: "90vh" }}>
+      <Box>
         <Grid container spacing={1}>
           <Grid size={4}>
             <Paper

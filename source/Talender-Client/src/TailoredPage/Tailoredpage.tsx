@@ -1,7 +1,12 @@
 import React from "react";
+import { Container, Box } from "@mui/material";
 
 const Tailoredpage: React.FC = () => {
-  return <div>Tailoredpage</div>;
+  return (
+    <Container sx={{ height: "90vh" }}>
+      <Box>Modify your skills</Box>
+    </Container>
+  );
 };
 
 export default Tailoredpage;
