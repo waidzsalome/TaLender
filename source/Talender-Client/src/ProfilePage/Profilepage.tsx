@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { requestUserInfo, updateUserInfo } from "../service/api";
 import {
   Container,
   Box,
@@ -21,6 +22,8 @@ import { userWei } from "./mock";
 
 const Profilepage: React.FC = () => {
   const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState(Object);
+
   const handleClickEditButton = () => {
     return navigate("/tailoredpage");
   };
@@ -33,6 +36,25 @@ const Profilepage: React.FC = () => {
   const handleClickDeleteButton = () => {
     console.log("click delete");
   };
+  const handleClickConfirmButton = async () => {
+    try {
+      const { data } = await updateUserInfo({});
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const getUserInfo = async () => {
+    try {
+      const { data } = await requestUserInfo(1);
+      setUserInfo(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getUserInfo();
+  }, [userInfo]);
   return (
     <Container sx={{ height: "90vh" }}>
       <Box>
@@ -147,6 +169,12 @@ const Profilepage: React.FC = () => {
                       control={<Switch defaultChecked />}
                       label=""
                     />
+                    <Button
+                      variant="outlined"
+                      onClick={handleClickConfirmButton}
+                    >
+                      Confirm
+                    </Button>
                   </Grid>
                   {/* </FormControl> */}
                 </Grid>
