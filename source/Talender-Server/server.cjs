@@ -1,0 +1,481 @@
+const { authMiddleware } = require("./middleware/auth");
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
+const { v4: uuidv4 } = require("uuid");
+const { createProxyMiddleware } = require("http-proxy-middleware");
+const session = require("express-session");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const jwt = require("jsonwebtoken");
+const { User, Account, Chat, Message, Skill, Category } = require("./models");
+
+const {
+    SECRET_KEY,
+    DB_URL,
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+} = require("./secret");
+const app = express();
+const port = 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use(
+    session({
+        secret: SECRET_KEY,
+        resave: false,
+        saveUninitialized: false,
+    })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+// MongoDB connection
+mongoose
+    .connect(DB_URL)
+    .then(() => console.log("Mongo connected"))
+    .catch((err) => console.error(err));
+
+// Passport config
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await Account.findById(id);
+        done(null, user);
+      } catch (err) {
+        done(err);
+}});
+passport.use(
+    new GoogleStrategy(
+        {
+            clientID: GOOGLE_CLIENT_ID,
+            clientSecret: GOOGLE_CLIENT_SECRET,
+            callbackURL: "http://localhost:3000/auth/google/callback",
+        },
+        async (accessToken, refreshToken, profile, done) => {
+            try {
+                const email = profile.emails[0].value;
+                const emailUsername = email.split("@")[0];
+
+                let account = await Account.findOne({ email });
+                let user = await User.findOne({ email });
+
+                if (!account || !user) {
+                    console.log("Creating new user via Google OAuth:", email);
+
+                    account = account || new Account({
+                        email,
+                        username: emailUsername,
+                        password: "",
+                        token: "",
+                    });
+
+                    user = user || new User({
+                        id: uuidv4(),
+                        username: emailUsername,
+                        name: profile.name?.givenName || "Google",
+                        surname: profile.name?.familyName || "User",
+                        email,
+                        status: "new",
+                        location: "",
+                        owned_skills: [],
+                        wanted_skills: [],
+                    });
+
+                    await account.save();
+                    await user.save();
+                } else {
+                    // ensure username stays synced with email prefix
+                    if (account.username !== emailUsername) {
+                        account.username = emailUsername;
+                        await account.save();
+                    }
+                    if (user.username !== emailUsername) {
+                        user.username = emailUsername;
+                        await user.save();
+                    }
+                }
+
+                // Passport session uses Account._id for consistency
+                return done(null, account);
+            } catch (err) {
+                return done(err);
+            }
+        }
+    )
+);
+
+// --- Google Auth Routes ---
+app.get(
+    "/auth/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+app.get(
+    "/auth/google/callback",
+    passport.authenticate("google", {
+        failureRedirect: "http://localhost:5173/loginpage",
+        session: true,
+    }),
+    async (req, res) => {
+        try {
+            const email = req.user.email;
+            const account = await Account.findOne({ email });
+            const user = await User.findOne({ email });
+
+            if (!account || !user) {
+                return res.status(404).json({ error: "User not found after OAuth." });
+            }
+
+            // Generate JWT using the User.id (uuid) for consistency
+            const token = jwt.sign(
+                {
+                    id: user.id,
+                    email: account.email,
+                    username: account.username,
+                },
+                SECRET_KEY,
+                { expiresIn: "1h" }
+            );
+
+            account.token = token;
+            await account.save();
+
+            // ✅ redirect with token so frontend can store it in localStorage
+            res.redirect(`http://localhost:5173/google-success?token=${token}`);
+        } catch (err) {
+            console.error("Google OAuth callback error:", err);
+            res.status(500).json({ error: "Google login failed" });
+        }
+    }
+);
+
+// Get all chats for a user
+app.get("/api/chats/user", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const chats = await Chat.find({ participants: userId }).sort({
+            updatedAt: -1,
+        });
+        res.json(chats);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch user chats" });
+    }
+});
+
+app.get("/api/messages", authMiddleware, async (req, res) => {
+    try {
+        const { chatId } = req.query;
+        
+        const messages = await Message.find({ chatId }).sort({ createdAt: 1 });
+        res.json(messages);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch messages" });
+    }
+});
+
+app.get("/api/user/search-by-id/:id", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const user = await User.findOne({ id: userId });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.json(user);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch messages" });
+    }
+});
+
+app.get("/api/skills", authMiddleware, async (req, res) => {
+    try {
+      const { category } = req.query;
+      const filter = {};
+  
+      if (category) {
+        // Match skills whose categories array contains the slug
+        filter.categories = category;
+        // or explicitly: filter.categories = { $in: [category] };
+      }
+  
+      const skills = await Skill.find(filter);
+  
+      if (!skills || skills.length === 0) {
+        return res.status(404).json({ error: "Skills not found" });
+      }
+  
+      res.json(skills);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to fetch skills" });
+    }
+  });
+  
+
+app.get("/api/categories", authMiddleware, async (req, res) => {
+    try {
+        const cat = await Category.find();
+        if (!cat) {
+            return res.status(404).json({ error: "catogies not found" });
+        }
+        res.json(cat)
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch categories" });
+    }
+});
+
+app.post("/api/skills/add", authMiddleware, async (req, res) => {
+    try {
+        const { skillId, type } = req.body; // type = 'owned' | 'wanted'
+        if (!skillId || !type) return res.status(400).json({ error: "skillId and type required" });
+
+        const user = await User.findOne({ id: req.user.id });
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        if (type === "owned") {
+            if (user.owned_skills.includes(skillId)) {
+                return res.status(400).json({ error: "Skill already owned" });
+            }
+            user.owned_skills.push(skillId);
+        } else if (type === "wanted") {
+            if (user.wanted_skills.includes(skillId)) {
+                return res.status(400).json({ error: "Skill already wanted" });
+            }
+            user.wanted_skills.push(skillId);
+        } else {
+            return res.status(400).json({ error: "Invalid type" });
+        }
+
+        await user.save();
+        res.json({ message: `Skill added to ${type} list` });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to add skill" });
+    }
+});
+
+app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const user = await User.findOne({ id: userId });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        skills = {owned: user.owned_skills, wanted: user.wanted_skills};
+        res.json(skills);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch messages" });
+    }
+});
+
+
+app.get("/api/users/search-by-username/:username", authMiddleware, async (req, res) => {
+    try {
+      const { username } = req.params; // use req.params, not req.query
+      if (!username) return res.status(400).json({ error: "Username required" });
+  
+      // Find all users whose username starts with the input, case-insensitive
+      const users = await User.find({
+        username: { $regex: `^${username}`, $options: "i" }
+      }).sort({ username: 1 }); // sort alphabetically
+  
+      res.json(users);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+  
+
+app.get("/api/userId", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        res.json(userId);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch messages" });
+    }
+});
+// Registration route
+app.post("/register", async (req, res) => {
+    try {
+        const {
+            username,
+            password,
+            name,
+            surname,
+            email,
+            status,
+            location,
+            owned_skills,
+            wanted_skills,
+        } = req.body;
+
+        const existing = await Account.findOne({
+            $or: [{ email }, { username }],
+        });
+
+        if (existing) {
+            return res.status(409).json({
+                error: "An account with that email or username already exists.",
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const account = new Account({
+            email,
+            username,
+            password: hashedPassword,
+            token: "",
+        });
+
+        const user = new User({
+            id: uuidv4(),
+            username,
+            name,
+            surname,
+            email,
+            status,
+            location,
+            owned_skills: owned_skills || [],
+            wanted_skills: wanted_skills || [],
+        });
+
+        await account.save();
+        await user.save();
+
+        res.status(201).json({ message: "Account and user created." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Registration failed." });
+    }
+});
+// Login route
+app.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res
+            .status(400)
+            .json({ error: "Username and password required" });
+    }
+    try {
+        const account = await Account.findOne({ username });
+
+        if (!account) {
+            return res.status(404).json({ error: "Account not found." });
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(
+            password,
+            account.password
+        );
+        if (!isPasswordCorrect) {
+            return res.status(401).json({ error: "Invalid password." });
+        }
+        const user = await User.findOne({ email: account.email });
+        const token = jwt.sign(
+            { id: user.id, email: account.email, username: account.username },
+            SECRET_KEY,
+            { expiresIn: "1h" }
+        );
+
+        account.token = token;
+        await account.save();
+
+        res.status(200).json({ message: "Login successful", token });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal server error." });
+    }
+});
+// Chat and Message Routes
+app.post("/api/chats", authMiddleware, async (req, res) => {
+    try {
+        const { user1, user2 } = req.body;
+        const chatId = [user1, user2].sort().join("_");
+        let chat = await Chat.findOne({ chatId });
+        if (!chat)
+            chat = await Chat.create({ chatId, participants: [user1, user2] });
+        // After creating a new chat
+        io.to(user1).emit("newChat", chat);
+        io.to(user2).emit("newChat", chat);
+        res.json(chat);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to create chat" });
+    }
+});
+// Message routes
+app.post("/api/messages/send", authMiddleware, async (req, res) => {
+    try {
+      const { chatId, text } = req.body;
+      const userId = req.user.id;
+  
+      const message = await Message.create({
+        chatId,
+        senderId: userId,
+        text,
+        createdAt: new Date(),
+      });
+  
+      await Chat.findOneAndUpdate(
+        { chatId },
+        {
+          lastMessage: {
+            text: message.text,
+            senderId: message.senderId,
+            createdAt: message.createdAt,
+          },
+        },
+        { new: true }
+      );
+  
+      // ✅ Emit to all clients in the chat room
+      io.to(chatId).emit("newMessage", message);
+  
+      res.json(message);
+    } catch (err) {
+      console.error("Message send error:", err);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+  
+
+
+// Socket.io part
+
+const http = require("http");
+const server = http.createServer(app); // wrap express app
+
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: { origin: "*" }, // adjust as needed
+});
+
+io.on("connection", (socket) => {
+  console.log("Client connected", socket.id);
+
+  socket.on("joinChat", (chatId) => {
+    socket.join(chatId);
+    console.log(`Socket ${socket.id} joined chat ${chatId}`);
+  });
+
+  socket.on("leaveChat", (chatId) => {
+    socket.leave(chatId);
+    console.log(`Socket ${socket.id} left chat ${chatId}`);
+  });
+});
+
+// Replace your old listen:
+server.listen(3000, () => console.log("Server running on port 3000"));
+
