@@ -46,9 +46,10 @@ passport.deserializeUser(async (id, done) => {
     try {
         const user = await Account.findById(id);
         done(null, user);
-      } catch (err) {
+    } catch (err) {
         done(err);
-}});
+    }
+});
 passport.use(
     new GoogleStrategy(
         {
@@ -67,24 +68,28 @@ passport.use(
                 if (!account || !user) {
                     console.log("Creating new user via Google OAuth:", email);
 
-                    account = account || new Account({
-                        email,
-                        username: emailUsername,
-                        password: "",
-                        token: "",
-                    });
+                    account =
+                        account ||
+                        new Account({
+                            email,
+                            username: emailUsername,
+                            password: "",
+                            token: "",
+                        });
 
-                    user = user || new User({
-                        id: uuidv4(),
-                        username: emailUsername,
-                        name: profile.name?.givenName || "Google",
-                        surname: profile.name?.familyName || "User",
-                        email,
-                        status: "new",
-                        location: "",
-                        owned_skills: [],
-                        wanted_skills: [],
-                    });
+                    user =
+                        user ||
+                        new User({
+                            id: uuidv4(),
+                            username: emailUsername,
+                            name: profile.name?.givenName || "Google",
+                            surname: profile.name?.familyName || "User",
+                            email,
+                            status: "new",
+                            location: "",
+                            owned_skills: [],
+                            wanted_skills: [],
+                        });
 
                     await account.save();
                     await user.save();
@@ -108,7 +113,6 @@ passport.use(
         }
     )
 );
-
 // --- Google Auth Routes ---
 app.get(
     "/auth/google",
@@ -128,7 +132,9 @@ app.get(
             const user = await User.findOne({ email });
 
             if (!account || !user) {
-                return res.status(404).json({ error: "User not found after OAuth." });
+                return res
+                    .status(404)
+                    .json({ error: "User not found after OAuth." });
             }
 
             // Generate JWT using the User.id (uuid) for consistency
@@ -153,7 +159,6 @@ app.get(
         }
     }
 );
-
 // Get all chats for a user
 app.get("/api/chats/user", authMiddleware, async (req, res) => {
     try {
@@ -171,7 +176,7 @@ app.get("/api/chats/user", authMiddleware, async (req, res) => {
 app.get("/api/messages", authMiddleware, async (req, res) => {
     try {
         const { chatId } = req.query;
-        
+
         const messages = await Message.find({ chatId }).sort({ createdAt: 1 });
         res.json(messages);
     } catch (err) {
@@ -196,36 +201,37 @@ app.get("/api/user/search-by-id/:id", authMiddleware, async (req, res) => {
 
 app.get("/api/skills", authMiddleware, async (req, res) => {
     try {
-      const { category } = req.query;
-      const filter = {};
-  
-      if (category) {
-        // Match skills whose categories array contains the slug
-        filter.categories = category;
-        // or explicitly: filter.categories = { $in: [category] };
-      }
-  
-      const skills = await Skill.find(filter);
-  
-      if (!skills || skills.length === 0) {
-        return res.status(404).json({ error: "Skills not found" });
-      }
-  
-      res.json(skills);
+        const { category } = req.query;
+        const filter = {};
+
+        if (category) {
+            // Match skills whose categories array contains the slug
+            filter.categories = category;
+            // or explicitly: filter.categories = { $in: [category] };
+        }
+
+        const skills = await Skill.find(filter);
+
+        if (!skills || skills.length === 0) {
+            return res.status(404).json({ error: "Skills not found" });
+        }
+
+        res.json(skills);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Failed to fetch skills" });
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch skills" });
     }
-  });
-  
+});
 
 app.get("/api/categories", async (req, res) => {
     try {
         const cat = await Category.find();
         if (!cat) {
-            return res.status(404).json({ error: "catogies not found" });
+            return res.status(404).json({ error: "categories not found" });
         }
-        res.json(cat)
+        console.log(cat);
+
+        res.json(cat);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to fetch categories" });
@@ -235,7 +241,8 @@ app.get("/api/categories", async (req, res) => {
 app.post("/api/skills/add", authMiddleware, async (req, res) => {
     try {
         const { skillId, type } = req.body; // type = 'owned' | 'wanted'
-        if (!skillId || !type) return res.status(400).json({ error: "skillId and type required" });
+        if (!skillId || !type)
+            return res.status(400).json({ error: "skillId and type required" });
 
         const user = await User.findOne({ id: req.user.id });
         if (!user) return res.status(404).json({ error: "User not found" });
@@ -269,7 +276,7 @@ app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        skills = {owned: user.owned_skills, wanted: user.wanted_skills};
+        skills = { owned: user.owned_skills, wanted: user.wanted_skills };
         res.json(skills);
     } catch (err) {
         console.error(err);
@@ -277,24 +284,69 @@ app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
     }
 });
 
-
-app.get("/api/users/search-by-username/:username", authMiddleware, async (req, res) => {
+app.get("/api/recommendedUsers/:id", authMiddleware, async (req, res) => {
     try {
-      const { username } = req.params; // use req.params, not req.query
-      if (!username) return res.status(400).json({ error: "Username required" });
+      const userId = req.params.id;
+      const user = await User.findOne({ id: userId });
   
-      // Find all users whose username starts with the input, case-insensitive
-      const users = await User.find({
-        username: { $regex: `^${username}`, $options: "i" }
-      }).sort({ username: 1 }); // sort alphabetically
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const potentialMatches = await User.find({
+        id: { $ne: userId }, // exclude current user
+        $or: [
+          { interests: { $in: user.skills } },
+          { skills: { $in: user.interests } },
+        ],
+      });
   
-      res.json(users);
+      // Compute overlap score for ranking
+      const rankedUsers = potentialMatches
+        .map((u) => {
+          const skillMatchCount = u.skills.filter((s) =>
+            user.interests.includes(s)
+          ).length;
+  
+          const interestMatchCount = u.interests.filter((i) =>
+            user.skills.includes(i)
+          ).length;
+  
+          const matchScore = skillMatchCount + interestMatchCount;
+  
+          return {
+            ...u.toObject(),
+            matchScore,
+          };
+        })
+        .filter((u) => u.matchScore > 0)
+        .sort((a, b) => b.matchScore - a.matchScore); 
+  
+      res.json(rankedUsers);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Failed to fetch users" });
+      console.error("Error fetching recommended users:", err);
+      res.status(500).json({ error: "Failed to fetch recommended users" });
     }
-  });
-  
+});
+
+app.get("/api/users/search-by-username/:username", async (req, res) => {
+        try {
+            const { username } = req.params; // use req.params, not req.query
+            if (!username)
+                return res.status(400).json({ error: "Username required" });
+
+            // Find all users whose username starts with the input, case-insensitive
+            const users = await User.find({
+                username: { $regex: `^${username}`, $options: "i" },
+            }).sort({ username: 1 }); // sort alphabetically
+
+            res.json(users);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: "Failed to fetch users" });
+        }
+    }
+);
 
 app.get("/api/userId", authMiddleware, async (req, res) => {
     try {
@@ -342,14 +394,15 @@ app.post("/register", async (req, res) => {
         const user = new User({
             id: uuidv4(),
             username,
-            name,
-            surname,
+            first_name: name,
+            last_name: surname,
             email,
             status,
             location,
-            owned_skills: owned_skills || [],
-            wanted_skills: wanted_skills || [],
+            skills: owned_skills || [],
+            interests: wanted_skills || [],
         });
+        
 
         await account.save();
         await user.save();
@@ -418,64 +471,62 @@ app.post("/api/chats", authMiddleware, async (req, res) => {
 // Message routes
 app.post("/api/messages/send", authMiddleware, async (req, res) => {
     try {
-      const { chatId, text } = req.body;
-      const userId = req.user.id;
-  
-      const message = await Message.create({
-        chatId,
-        senderId: userId,
-        text,
-        createdAt: new Date(),
-      });
-  
-      await Chat.findOneAndUpdate(
-        { chatId },
-        {
-          lastMessage: {
-            text: message.text,
-            senderId: message.senderId,
-            createdAt: message.createdAt,
-          },
-        },
-        { new: true }
-      );
-  
-      // ✅ Emit to all clients in the chat room
-      io.to(chatId).emit("newMessage", message);
-  
-      res.json(message);
+        const { chatId, text } = req.body;
+        const userId = req.user.id;
+
+        const message = await Message.create({
+            chatId,
+            senderId: userId,
+            text,
+            createdAt: new Date(),
+        });
+
+        await Chat.findOneAndUpdate(
+            { chatId },
+            {
+                lastMessage: {
+                    text: message.text,
+                    senderId: message.senderId,
+                    createdAt: message.createdAt,
+                },
+            },
+            { new: true }
+        );
+
+        // ✅ Emit to all clients in the chat room
+        io.to(chatId).emit("newMessage", message);
+
+        res.json(message);
     } catch (err) {
-      console.error("Message send error:", err);
-      res.status(500).json({ error: "Failed to send message" });
+        console.error("Message send error:", err);
+        res.status(500).json({ error: "Failed to send message" });
     }
-  });
-  
+});
 
 
-// Socket.io part
+
+
 
 const http = require("http");
 const server = http.createServer(app); // wrap express app
-
 const { Server } = require("socket.io");
 const io = new Server(server, {
-  cors: { origin: "*" }, // adjust as needed
+    cors: { origin: "*" }, // adjust as needed
 });
 
 io.on("connection", (socket) => {
-  console.log("Client connected", socket.id);
+    console.log("Client connected", socket.id);
 
-  socket.on("joinChat", (chatId) => {
-    socket.join(chatId);
-    console.log(`Socket ${socket.id} joined chat ${chatId}`);
-  });
+    socket.on("joinChat", (chatId) => {
+        socket.join(chatId);
+        console.log(`Socket ${socket.id} joined chat ${chatId}`);
+    });
 
-  socket.on("leaveChat", (chatId) => {
-    socket.leave(chatId);
-    console.log(`Socket ${socket.id} left chat ${chatId}`);
-  });
+    socket.on("leaveChat", (chatId) => {
+        socket.leave(chatId);
+        console.log(`Socket ${socket.id} left chat ${chatId}`);
+    });
 });
 
 // Replace your old listen:
 server.listen(3000, () => console.log("Server running on port 3000"));
-
