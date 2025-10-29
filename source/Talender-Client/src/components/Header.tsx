@@ -12,10 +12,18 @@ const Header: React.FC = () => {
     return navigate("/");
   };
   const handleClickMailButton = () => {
-    return navigate("/chatpage");
+    if (localStorage.getItem("token")) {
+      return navigate("/chatpage");
+    } else {
+      return navigate("/loginrequired");
+    }
   };
   const handleClickAccountButton = () => {
-    return navigate("/profilepage");
+    if (localStorage.getItem("token")) {
+      return navigate("/profilepage");
+    } else {
+      return navigate("/loginrequired");
+    }
   };
   return (
     <AppBar position="static" sx={{ height: "6vh" }}>
@@ -60,7 +68,6 @@ const Header: React.FC = () => {
               <AccountCircleIcon sx={{ fontSize: 30 }} />
             </IconButton>
           </Grid>
-          {/* <Grid size="grow" /> */}
         </Grid>
       </Grid>
     </AppBar>

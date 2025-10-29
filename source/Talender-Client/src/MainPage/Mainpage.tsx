@@ -18,10 +18,18 @@ import SearchIcon from "@mui/icons-material/Search";
 const Mainpage: React.FC = () => {
   const navigate = useNavigate();
   const handleClickModifyButton = () => {
-    return navigate("/tailoredpage");
+    if (localStorage.getItem("token")) {
+      return navigate("/tailoredpage");
+    } else {
+      return navigate("/loginrequired");
+    }
   };
   const handleClickSwipeButton = () => {
-    return navigate("/swipepage");
+    if (localStorage.getItem("token")) {
+      return navigate("/swipepage");
+    } else {
+      return navigate("/loginrequired");
+    }
   };
   return (
     <Container maxWidth="md">

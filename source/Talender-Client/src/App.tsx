@@ -8,6 +8,8 @@ import Swipepage from "./SwipePage/Swipepage";
 import Chatpage from "./ChatPage/Chatpage";
 import ManagePage from "./MangementPage/ManagePage";
 import Tailoredpage from "./TailoredPage/Tailoredpage";
+import LoginRequired from "./components/LoginRequired";
+
 const routesMap = [
   {
     path: "/",
@@ -33,9 +35,13 @@ const routesMap = [
     path: "/managepage",
     element: <ManagePage />,
   },
+  {
+    path: "/loginrequired",
+    element: <LoginRequired />,
+  },
 ];
 
-const App = () => {
+const App: React.FC = () => {
   return (
     <Box>
       <Header />

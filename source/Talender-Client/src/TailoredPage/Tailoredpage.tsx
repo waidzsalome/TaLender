@@ -14,45 +14,37 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-
-const categories = [
-  {
-    name: "Sport",
-    color: "orange",
-    items: ["Football", "Baseball", "Volleyball"],
-  },
-  {
-    name: "Family Work",
-    color: "#c47b33",
-    items: ["Cooking", "Gardening", "Decorating"],
-  },
-  {
-    name: "Art",
-    color: "green",
-    items: ["Painting", "Singing", "Watercolor Painting"],
-  },
-];
+import { categories, skilltypes } from "./constants";
+import type { SelectChangeEvent } from "@mui/material";
 
 const Tailoredpage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedItem, setSelectedItem] = useState<string>("");
   const [filter, setFilter] = useState("");
-  const [sort, setSort] = useState("");
   const [keyword, setKeyword] = useState("");
+
+  //Add new skills Modal
+  const [openDialog, setOpenDialog] = useState(false);
+  const [newSkillType, setNewSkillType] = useState("");
+  const [newSkillName, setNewSkillName] = useState("");
 
   const handleClick = (event: React.MouseEvent<HTMLElement>, item: string) => {
     setAnchorEl(event.currentTarget);
     setSelectedItem(item);
-    console.log(selectedItem);
   };
+
   const handleApply = () => {
     console.log({
       keyword,
       filter,
-      sort,
     });
+    //submit data
   };
 
   const handleClose = () => {
@@ -60,19 +52,46 @@ const Tailoredpage: React.FC = () => {
     setSelectedItem("");
   };
 
+  const handleClickAddIntetrets = () => {
+    console.log(selectedItem);
+    //submit data and refesh page
+  };
+
+  const handleClickAddMySkills = () => {
+    console.log(selectedItem);
+    //submit data and refresh page
+  };
+  const handleFilterChange = (e: SelectChangeEvent<string>) => {
+    setFilter(e.target.value);
+  };
+
+  const handleOpenDialog = () => setOpenDialog(true);
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setNewSkillName("");
+    setNewSkillType("");
+  };
+  const handleConfirmAddSkill = () => {
+    console.log("New skill:", { type: newSkillType, skill: newSkillName });
+    //submit data
+    handleCloseDialog();
+  };
+
   const open = Boolean(anchorEl);
+
   return (
-    <Container sx={{ height: "90vh" }}>
+    <Container sx={{ height: "90vh", position: "relative" }}>
+      {/* filter form */}
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 2, // 控制组件之间的间距
+          gap: 2,
           p: 2,
-          flexWrap: "wrap", // 小屏自动换行
+          flexWrap: "wrap",
         }}
       >
-        {/* 搜索框 */}
+        {/* search */}
         <FormControl size="small">
           <TextField
             variant="outlined"
@@ -95,41 +114,25 @@ const Tailoredpage: React.FC = () => {
           />
         </FormControl>
 
-        {/* Filters 下拉框 */}
-        <FormControl sx={{ minWidth: 150 }} size="small">
-          <InputLabel>Filters</InputLabel>
+        {/* Filters */}
+        <FormControl sx={{ minWidth: 180 }} size="small">
+          <InputLabel>Filter</InputLabel>
           <Select
             value={filter}
             label="Filters"
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={handleFilterChange}
             sx={{
               borderRadius: 5,
             }}
           >
-            <MenuItem value="sport">Sport</MenuItem>
-            <MenuItem value="family">Family Work</MenuItem>
-            <MenuItem value="art">Art</MenuItem>
+            <MenuItem value="">None</MenuItem>
+            {skilltypes.map((item) => (
+              <MenuItem value={item}>{item}</MenuItem>
+            ))}
           </Select>
         </FormControl>
 
-        {/* Sort By 下拉框 */}
-        <FormControl sx={{ minWidth: 150 }} size="small">
-          <InputLabel>Sort by</InputLabel>
-          <Select
-            value={sort}
-            label="Sort by"
-            onChange={(e) => setSort(e.target.value)}
-            sx={{
-              borderRadius: 5,
-            }}
-          >
-            <MenuItem value="name">Name</MenuItem>
-            <MenuItem value="popularity">Popularity</MenuItem>
-            <MenuItem value="newest">Newest</MenuItem>
-          </Select>
-        </FormControl>
-
-        {/* Apply 按钮 */}
+        {/* Apply */}
         <Button
           variant="contained"
           color="primary"
@@ -138,17 +141,17 @@ const Tailoredpage: React.FC = () => {
             px: 3,
             py: 1,
             fontWeight: "bold",
-            borderRadius: 3,
             textTransform: "none",
           }}
         >
           Apply
         </Button>
       </Box>
+
+      {/* display by categories */}
       <Box sx={{ p: 3 }}>
         {categories.map((cat) => (
           <Box key={cat.name} sx={{ mb: 4 }}>
-            {/* 分类标题 */}
             <Chip
               label={cat.name}
               sx={{
@@ -160,8 +163,6 @@ const Tailoredpage: React.FC = () => {
                 mb: 2,
               }}
             />
-
-            {/* 分类内容 */}
             <Stack direction="row" flexWrap="wrap" gap={1}>
               {cat.items.map((item) => (
                 <Chip
@@ -184,7 +185,7 @@ const Tailoredpage: React.FC = () => {
           </Box>
         ))}
 
-        {/* 弹出操作框 */}
+        {/* 弹出选择菜单 */}
         <Popover
           open={open}
           anchorEl={anchorEl}
@@ -198,15 +199,115 @@ const Tailoredpage: React.FC = () => {
             horizontal: "center",
           }}
         >
-          <Box sx={{ p: 2, textAlign: "center", width: 200 }}>
-            <Typography sx={{ fontWeight: 500 }}>
+          <Box sx={{ p: 1, textAlign: "center", width: 200 }}>
+            <Button
+              sx={{ cursor: "pointer", textTransform: "none" }}
+              onClick={handleClickAddIntetrets}
+            >
               Add to My Interests
-            </Typography>
+            </Button>
             <Divider sx={{ my: 1 }} />
-            <Typography sx={{ fontWeight: 500 }}>Add to My Skills</Typography>
+            <Button
+              sx={{ fcursor: "pointer", textTransform: "none" }}
+              onClick={handleClickAddMySkills}
+            >
+              Add to My Skills
+            </Button>
           </Box>
         </Popover>
       </Box>
+
+      {/* ✅ 右下角悬浮提示 */}
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: 20,
+          right: 20,
+          bgcolor: "white",
+          border: "1px solid #ccc",
+          borderRadius: 2,
+          boxShadow: 3,
+          p: 2,
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="body1" fontWeight="bold">
+          Can't find my interests?
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 0.5 }}>
+          Try to{" "}
+          <Typography
+            component="span"
+            sx={{
+              color: "primary.main",
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+            onClick={handleOpenDialog}
+          >
+            add
+          </Typography>{" "}
+          your new Skills
+        </Typography>
+      </Box>
+
+      {/* ✅ Add new Skills 弹窗 */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle component="div">
+          <Typography variant="h4">Add new Skills</Typography>
+          <Divider sx={{ p: 1 }} />
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            height: "160px",
+          }}
+        >
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel id="type-label">Type</InputLabel>
+            <Select
+              labelId="type-label"
+              value={newSkillType}
+              onChange={(e) => setNewSkillType(e.target.value)}
+              label="Type"
+            >
+              {skilltypes.map((item) => (
+                <MenuItem id={item} value={item}>
+                  {item}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Skill"
+            placeholder="Please input your Skill"
+            fullWidth
+            value={newSkillName}
+            onChange={(e) => setNewSkillName(e.target.value)}
+          />
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleCloseDialog} variant="outlined">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmAddSkill}
+            color="success"
+            variant="contained"
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

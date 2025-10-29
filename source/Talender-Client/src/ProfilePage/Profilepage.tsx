@@ -46,7 +46,7 @@ const Profilepage: React.FC = () => {
   };
   const getUserInfo = async () => {
     try {
-      const { data } = await requestUserInfo(1);
+      const { data } = await requestUserInfo();
       setUserInfo(data);
     } catch (error) {
       console.log(error);
@@ -213,7 +213,6 @@ const Profilepage: React.FC = () => {
 
               <Divider />
 
-              {/* 特长 */}
               <Box>
                 <Box
                   sx={{
