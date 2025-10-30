@@ -211,7 +211,7 @@ const Tailoredpage: React.FC = () => {
               sx={{ fcursor: "pointer", textTransform: "none" }}
               onClick={handleClickAddMySkills}
             >
-              Add to My Skills
+              Add to My Talents
             </Button>
           </Box>
         </Popover>

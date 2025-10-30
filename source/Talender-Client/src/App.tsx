@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router";
 import { Box } from "@mui/material";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Mainpage from "./MainPage/Mainpage";
@@ -11,10 +12,6 @@ import Tailoredpage from "./TailoredPage/Tailoredpage";
 import LoginRequired from "./components/LoginRequired";
 
 const routesMap = [
-  {
-    path: "/",
-    element: <Mainpage />,
-  },
   {
     path: "profilepage",
     element: <Profilepage />,
@@ -35,10 +32,6 @@ const routesMap = [
     path: "/managepage",
     element: <ManagePage />,
   },
-  {
-    path: "/loginrequired",
-    element: <LoginRequired />,
-  },
 ];
 
 const App: React.FC = () => {
@@ -46,8 +39,15 @@ const App: React.FC = () => {
     <Box>
       <Header />
       <Routes>
+        {/* public webpage */}
+        <Route path="/" element={<Mainpage />} />
+        <Route path="/loginrequired" element={<LoginRequired />} />
+        {/* protected webpage */}
         {routesMap.map((routeItem) => (
-          <Route path={routeItem.path} element={routeItem.element} />
+          <Route
+            path={routeItem.path}
+            element={<ProtectedRoute>{routeItem.element}</ProtectedRoute>}
+          />
         ))}
       </Routes>
       <Footer />

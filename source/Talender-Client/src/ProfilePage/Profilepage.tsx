@@ -15,20 +15,26 @@ import {
   Button,
   FormControlLabel,
   Switch,
-  // FormControl,
 } from "@mui/material";
 import { useNavigate } from "react-router";
 import { userWei } from "./mock";
 
 const Profilepage: React.FC = () => {
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState(Object);
+  const [userInfo, setUserInfo] = useState({
+    name: "Weiiii",
+    age: 26,
+    location: "Roma, Italy",
+    isPublic: true,
+  });
+  const [editable, seteditable] = useState(false);
 
   const handleClickEditButton = () => {
     return navigate("/tailoredpage");
   };
   const handleClickModifyButton = () => {
     console.log("click modify");
+    seteditable(!editable);
   };
   const handleClickLogoutButton = () => {
     console.log("click logout");
@@ -46,8 +52,8 @@ const Profilepage: React.FC = () => {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value =
         field === "isPublic" ? event.target.checked : event.target.value;
-      // setFormData((prev) => ({ ...prev, [field]: value }));
-      console.log({ ...userInfo, [field]: value });
+      setUserInfo((prev) => ({ ...prev, [field]: value }));
+      // console.log({ ...userInfo, [field]: value });
     };
   const handleClickConfirmButton = async () => {
     try {
@@ -60,31 +66,19 @@ const Profilepage: React.FC = () => {
   const getUserInfo = async () => {
     try {
       const { data } = await requestUserInfo();
-      // setUserInfo(data);
-      console.log(data);
-      setUserInfo({
-        name: "Weiiii",
-        age: 26,
-        location: "Roma, Italy",
-        isPublic: true,
-      });
+      setUserInfo(data);
     } catch (error) {
-      setUserInfo({
-        name: "Weiiii",
-        age: 26,
-        location: "Roma, Italy",
-        isPublic: true,
-      });
       console.log(error);
     }
   };
   useEffect(() => {
     getUserInfo();
-  }, [userInfo]);
+  }, []);
   return (
     <Container sx={{ height: "90vh" }}>
       <Box>
         <Grid container spacing={1}>
+          {/* left part of profilepage */}
           <Grid size={4}>
             <Box
               sx={{
@@ -150,6 +144,7 @@ const Profilepage: React.FC = () => {
               </Box>
             </Box>
           </Grid>
+          {/* right part of profilepage */}
           <Grid size={8}>
             <Box
               sx={{
@@ -162,90 +157,115 @@ const Profilepage: React.FC = () => {
               }}
             >
               {/* user information */}
-              <Box
-                component="form"
-                onSubmit={handleSubmit}
-                sx={{
-                  mt: 3,
-                  p: 3,
-                  borderRadius: 2,
-                  boxShadow: 2,
-                  bgcolor: "background.paper",
-                }}
-              >
+              <Box component="form" onSubmit={handleSubmit}>
                 <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
                   User Information
                 </Typography>
+                {editable ? (
+                  <Grid container spacing={2} alignItems="center">
+                    {/* Name */}
+                    <Grid size={4}>
+                      <Typography>Name</Typography>
+                    </Grid>
+                    <Grid size={8}>
+                      <TextField
+                        size="small"
+                        value={userInfo.name}
+                        fullWidth
+                        onChange={handleChange("name")}
+                      />
+                    </Grid>
 
-                <Grid container spacing={2} alignItems="center">
-                  {/* Name */}
-                  <Grid size={4}>
-                    <Typography>Name</Typography>
-                  </Grid>
-                  <Grid size={8}>
-                    <TextField
-                      size="small"
-                      value={userInfo.name}
-                      fullWidth
-                      onChange={handleChange("name")}
-                    />
-                  </Grid>
+                    {/* Age */}
+                    <Grid size={4}>
+                      <Typography>Age</Typography>
+                    </Grid>
+                    <Grid size={8}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={userInfo.age}
+                        fullWidth
+                        onChange={handleChange("age")}
+                      />
+                    </Grid>
 
-                  {/* Age */}
-                  <Grid size={4}>
-                    <Typography>Age</Typography>
-                  </Grid>
-                  <Grid size={8}>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={userInfo.age}
-                      fullWidth
-                      onChange={handleChange("age")}
-                    />
-                  </Grid>
-
-                  {/* Location + switch + button */}
-                  <Grid size={4}>
-                    <Typography>Location</Typography>
-                  </Grid>
-                  <Grid
-                    size={6}
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                  >
-                    <TextField
-                      size="small"
-                      value={userInfo.location}
-                      fullWidth
-                      onChange={handleChange("location")}
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={userInfo.isPublic}
-                          onChange={handleChange("isPublic")}
-                        />
-                      }
-                      label="Public"
-                    />
-                  </Grid>
-
-                  {/* Submit button */}
-                  <Grid size={2} sx={{ textAlign: "right", mt: 2 }}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      onClick={handleClickConfirmButton}
+                    {/* Location + switch + button */}
+                    <Grid size={4}>
+                      <Typography>Location</Typography>
+                    </Grid>
+                    <Grid
+                      size={6}
+                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
                     >
-                      Confirm
-                    </Button>
+                      <TextField
+                        size="small"
+                        value={userInfo.location}
+                        fullWidth
+                        onChange={handleChange("location")}
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={userInfo.isPublic}
+                            onChange={handleChange("isPublic")}
+                          />
+                        }
+                        label="Public"
+                      />
+                    </Grid>
+
+                    {/* Submit button */}
+                    <Grid size={2} sx={{ textAlign: "right" }}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        onClick={handleClickConfirmButton}
+                        size="small"
+                      >
+                        Confirm
+                      </Button>
+                    </Grid>
                   </Grid>
-                </Grid>
+                ) : (
+                  <Grid container spacing={2} alignItems="center">
+                    {/* Name */}
+                    <Grid size={4}>
+                      <Typography>Name</Typography>
+                    </Grid>
+                    <Grid size={8}>
+                      <Typography>{userInfo.name}</Typography>
+                    </Grid>
+
+                    {/* Age */}
+                    <Grid size={4}>
+                      <Typography>Age</Typography>
+                    </Grid>
+                    <Grid size={8}>
+                      <Typography>{userInfo.age}</Typography>
+                    </Grid>
+
+                    {/* Location */}
+                    <Grid size={4}>
+                      <Typography>Location</Typography>
+                    </Grid>
+                    <Grid
+                      size={8}
+                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                    >
+                      <Typography>{userInfo.location}</Typography>
+                      <FormControlLabel
+                        control={
+                          <Switch checked={userInfo.isPublic} disabled />
+                        }
+                        label="Public"
+                      />
+                    </Grid>
+                  </Grid>
+                )}
               </Box>
-
               <Divider />
-
               {/* My interest and skills Edit */}
               <Box>
                 <Box
@@ -274,9 +294,7 @@ const Profilepage: React.FC = () => {
                   ))}
                 </Box>
               </Box>
-
               <Divider />
-
               <Box>
                 <Box
                   sx={{

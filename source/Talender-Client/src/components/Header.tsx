@@ -12,21 +12,13 @@ const Header: React.FC = () => {
     return navigate("/");
   };
   const handleClickMailButton = () => {
-    if (localStorage.getItem("token")) {
-      return navigate("/chatpage");
-    } else {
-      return navigate("/loginrequired");
-    }
+    return navigate("/chatpage");
   };
   const handleClickAccountButton = () => {
-    if (localStorage.getItem("token")) {
-      return navigate("/profilepage");
-    } else {
-      return navigate("/loginrequired");
-    }
+    return navigate("/profilepage");
   };
   return (
-    <AppBar position="static" sx={{ height: "6vh" }}>
+    <AppBar position="static" sx={{ height: "7vh" }}>
       <Grid
         container
         sx={{

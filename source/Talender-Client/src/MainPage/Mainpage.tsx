@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Container,
@@ -17,19 +17,17 @@ import SearchIcon from "@mui/icons-material/Search";
 
 const Mainpage: React.FC = () => {
   const navigate = useNavigate();
+  const [filter, setFilter] = useState("");
+  const handleClickSearchButton = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!filter.trim()) return;
+    return navigate("/tailoredpage?filter=" + filter);
+  };
   const handleClickModifyButton = () => {
-    if (localStorage.getItem("token")) {
-      return navigate("/tailoredpage");
-    } else {
-      return navigate("/loginrequired");
-    }
+    return navigate("/tailoredpage");
   };
   const handleClickSwipeButton = () => {
-    if (localStorage.getItem("token")) {
-      return navigate("/swipepage");
-    } else {
-      return navigate("/loginrequired");
-    }
+    return navigate("/swipepage");
   };
   return (
     <Container maxWidth="md">
@@ -48,6 +46,7 @@ const Mainpage: React.FC = () => {
         >
           <Paper
             component="form"
+            onSubmit={handleClickSearchButton}
             sx={{
               p: "2px 4px",
               display: "flex",
@@ -59,8 +58,9 @@ const Mainpage: React.FC = () => {
               sx={{ ml: 1, flex: 1 }}
               placeholder="Input your Interests"
               inputProps={{ "aria-label": "Input your Interests" }}
+              onChange={(e) => setFilter(e.target.value)}
             />
-            <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
+            <IconButton type="submit" sx={{ p: "10px" }} aria-label="search">
               <SearchIcon />
             </IconButton>
           </Paper>

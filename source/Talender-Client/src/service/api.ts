@@ -1,5 +1,10 @@
 import request from "../service/request";
 
+// check if current user has a authenticated token
+export const requestIsMe = () => {
+  return request.get("");
+};
+
 //profile page
 // get userInfo, which will be shown at the right part of profile page
 export const requestUserInfo = () => {
