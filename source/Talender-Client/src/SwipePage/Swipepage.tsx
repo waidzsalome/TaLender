@@ -35,6 +35,12 @@ const images = [
 const skills = ["Eating", "Badmiinton", "Day Dreaming"];
 const interests = ["Tennis", "Cooking", "Catch Fish"];
 const Swipepage: React.FC = () => {
+  const handleClickYes = () => {
+    console.log("click yes");
+  };
+  const handleClickNo = () => {
+    console.log("click no");
+  };
   return (
     <Container
       sx={{
@@ -184,10 +190,18 @@ const Swipepage: React.FC = () => {
                         height: "5vh",
                       }}
                     >
-                      <Button variant="contained" color="error">
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={handleClickNo}
+                      >
                         No
                       </Button>
-                      <Button variant="contained" color="success">
+                      <Button
+                        variant="contained"
+                        color="success"
+                        onClick={handleClickYes}
+                      >
                         yes
                       </Button>
                     </Box>

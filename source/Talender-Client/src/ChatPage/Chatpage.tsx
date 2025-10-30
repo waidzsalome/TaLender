@@ -38,6 +38,7 @@ const ChatPage: React.FC = () => {
     console.log(input);
     setInput("");
   };
+
   useEffect(() => {
     //simulate set current user
     setCurUserID(1);

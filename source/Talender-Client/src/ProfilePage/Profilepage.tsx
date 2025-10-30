@@ -36,6 +36,19 @@ const Profilepage: React.FC = () => {
   const handleClickDeleteButton = () => {
     console.log("click delete");
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form submitted:", userInfo);
+  };
+  const handleChange =
+    (field: keyof typeof userInfo) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value =
+        field === "isPublic" ? event.target.checked : event.target.value;
+      // setFormData((prev) => ({ ...prev, [field]: value }));
+      console.log({ ...userInfo, [field]: value });
+    };
   const handleClickConfirmButton = async () => {
     try {
       const { data } = await updateUserInfo({});
@@ -47,8 +60,21 @@ const Profilepage: React.FC = () => {
   const getUserInfo = async () => {
     try {
       const { data } = await requestUserInfo();
-      setUserInfo(data);
+      // setUserInfo(data);
+      console.log(data);
+      setUserInfo({
+        name: "Weiiii",
+        age: 26,
+        location: "Roma, Italy",
+        isPublic: true,
+      });
     } catch (error) {
+      setUserInfo({
+        name: "Weiiii",
+        age: 26,
+        location: "Roma, Italy",
+        isPublic: true,
+      });
       console.log(error);
     }
   };
@@ -136,53 +162,91 @@ const Profilepage: React.FC = () => {
               }}
             >
               {/* user information */}
-              <Box>
+              <Box
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{
+                  mt: 3,
+                  p: 3,
+                  borderRadius: 2,
+                  boxShadow: 2,
+                  bgcolor: "background.paper",
+                }}
+              >
                 <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
                   User Information
                 </Typography>
 
                 <Grid container spacing={2} alignItems="center">
-                  {/* <FormControl> */}
+                  {/* Name */}
                   <Grid size={4}>
                     <Typography>Name</Typography>
                   </Grid>
                   <Grid size={8}>
-                    <TextField size="small" value="Weiiii" disabled fullWidth />
+                    <TextField
+                      size="small"
+                      value={userInfo.name}
+                      fullWidth
+                      onChange={handleChange("name")}
+                    />
                   </Grid>
 
+                  {/* Age */}
                   <Grid size={4}>
                     <Typography>Age</Typography>
                   </Grid>
                   <Grid size={8}>
-                    <TextField size="small" value="26" disabled fullWidth />
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={userInfo.age}
+                      fullWidth
+                      onChange={handleChange("age")}
+                    />
                   </Grid>
 
+                  {/* Location + switch + button */}
                   <Grid size={4}>
                     <Typography>Location</Typography>
                   </Grid>
                   <Grid
-                    size={8}
+                    size={6}
                     sx={{ display: "flex", alignItems: "center", gap: 1 }}
                   >
-                    <TextField size="small" value="Roma, Italy" disabled />
-                    <FormControlLabel
-                      control={<Switch defaultChecked />}
-                      label=""
+                    <TextField
+                      size="small"
+                      value={userInfo.location}
+                      fullWidth
+                      onChange={handleChange("location")}
                     />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={userInfo.isPublic}
+                          onChange={handleChange("isPublic")}
+                        />
+                      }
+                      label="Public"
+                    />
+                  </Grid>
+
+                  {/* Submit button */}
+                  <Grid size={2} sx={{ textAlign: "right", mt: 2 }}>
                     <Button
-                      variant="outlined"
+                      type="submit"
+                      variant="contained"
+                      color="primary"
                       onClick={handleClickConfirmButton}
                     >
                       Confirm
                     </Button>
                   </Grid>
-                  {/* </FormControl> */}
                 </Grid>
               </Box>
 
               <Divider />
 
-              {/* Edit */}
+              {/* My interest and skills Edit */}
               <Box>
                 <Box
                   sx={{
