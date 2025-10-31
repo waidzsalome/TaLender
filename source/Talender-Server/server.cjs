@@ -210,7 +210,7 @@ app.get("/api/user/search-by-id", authMiddleware, async (req, res) => {
     }
 });
 
-// Post, Get skills with optional category filter
+// Get a list of skills with optional category filter
 app.get("/api/skills", authMiddleware, async (req, res) => {
     try {
         const { category } = req.query;
@@ -235,6 +235,7 @@ app.get("/api/skills", authMiddleware, async (req, res) => {
     }
 });
 
+// Get, get a list of all skill categories from the DB
 app.get("/api/categories", async (req, res) => {
     try {
         const cat = await Category.find();
@@ -250,7 +251,7 @@ app.get("/api/categories", async (req, res) => {
     }
 });
 
-// Post, Add owned and wanted skills to a user
+// Post, Add a skill to a user's given a skillId and a type, which can be owned or wanted.
 app.post("/api/skills/add", authMiddleware, async (req, res) => {
     try {
         const { skillId, type } = req.body; // type = 'owned' | 'wanted'
@@ -621,7 +622,7 @@ app.post("/api/edit-user", authMiddleware, async (req, res) => {
         if (last_name !== undefined) user.last_name = last_name;
         if (age !== undefined) user.age = age;
         if (location !== undefined) user.location = location;
-        if (isPublic !== undefined) user.isPublic = isPublic;
+        if (isPublic !== undefined) user.sharedLocation = isPublic;
 
         await user.save();
 
