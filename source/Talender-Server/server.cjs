@@ -9,7 +9,15 @@ const session = require("express-session");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const jwt = require("jsonwebtoken");
-const { User, Account, Chat, Message, Skill, Category, Like } = require("./models");
+const {
+    User,
+    Account,
+    Chat,
+    Message,
+    Skill,
+    Category,
+    Like,
+} = require("./models");
 
 const {
     SECRET_KEY,
@@ -187,8 +195,8 @@ app.get("/api/messages", authMiddleware, async (req, res) => {
     }
 });
 
-// Get user data from a user Id. Only one user returned 
-app.get("/api/user/search-by-id/:id", authMiddleware, async (req, res) => {
+// Get user data from a user Id. Only one user returned
+app.get("/api/user/search-by-id", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const user = await User.findOne({ id: userId });
@@ -202,7 +210,7 @@ app.get("/api/user/search-by-id/:id", authMiddleware, async (req, res) => {
     }
 });
 
-// Post, Get skills with optional category filter 
+// Post, Get skills with optional category filter
 app.get("/api/skills", authMiddleware, async (req, res) => {
     try {
         const { category } = req.query;
@@ -241,7 +249,6 @@ app.get("/api/categories", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch categories" });
     }
 });
-
 
 // Post, Add owned and wanted skills to a user
 app.post("/api/skills/add", authMiddleware, async (req, res) => {
@@ -290,72 +297,71 @@ app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
     }
 });
 
-
 // TODO: Add like/unlike checks for users to recommend
 app.get("/api/recommendedUsers/", authMiddleware, async (req, res) => {
     try {
-      const userId = req.user.id;
-      const user = await User.findOne({ id: userId });
-  
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
+        const userId = req.user.id;
+        const user = await User.findOne({ id: userId });
 
-      const potentialMatches = await User.find({
-        id: { $ne: userId }, // exclude current user
-        $or: [
-          { interests: { $in: user.skills } },
-          { skills: { $in: user.interests } },
-        ],
-      });
-  
-      // Compute overlap score for ranking
-      const rankedUsers = potentialMatches
-        .map((u) => {
-          const skillMatchCount = u.skills.filter((s) =>
-            user.interests.includes(s)
-          ).length;
-  
-          const interestMatchCount = u.interests.filter((i) =>
-            user.skills.includes(i)
-          ).length;
-  
-          const matchScore = skillMatchCount + interestMatchCount;
-  
-          return {
-            ...u.toObject(),
-            matchScore,
-          };
-        })
-        .filter((u) => u.matchScore > 0)
-        .sort((a, b) => b.matchScore - a.matchScore); 
-  
-      res.json(rankedUsers);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const potentialMatches = await User.find({
+            id: { $ne: userId }, // exclude current user
+            $or: [
+                { interests: { $in: user.skills } },
+                { skills: { $in: user.interests } },
+            ],
+        });
+
+        // Compute overlap score for ranking
+        const rankedUsers = potentialMatches
+            .map((u) => {
+                const skillMatchCount = u.skills.filter((s) =>
+                    user.interests.includes(s)
+                ).length;
+
+                const interestMatchCount = u.interests.filter((i) =>
+                    user.skills.includes(i)
+                ).length;
+
+                const matchScore = skillMatchCount + interestMatchCount;
+
+                return {
+                    ...u.toObject(),
+                    matchScore,
+                };
+            })
+            .filter((u) => u.matchScore > 0)
+            .sort((a, b) => b.matchScore - a.matchScore);
+
+        res.json(rankedUsers);
     } catch (err) {
-      console.error("Error fetching recommended users:", err);
-      res.status(500).json({ error: "Failed to fetch recommended users" });
+        console.error("Error fetching recommended users:", err);
+        res.status(500).json({ error: "Failed to fetch recommended users" });
     }
 });
 
 app.get("/api/users/search-by-username/:username", async (req, res) => {
-        try {
-            const { username } = req.params; // use req.params, not req.query
-            if (!username)
-                return res.status(400).json({ error: "Username required" });
+    try {
+        const { username } = req.params; // use req.params, not req.query
+        if (!username)
+            return res.status(400).json({ error: "Username required" });
 
-            // Find all users whose username starts with the input, case-insensitive
-            const users = await User.find({
-                username: { $regex: `^${username}`, $options: "i" },
-            }).sort({ username: 1 }); // sort alphabetically
+        // Find all users whose username starts with the input, case-insensitive
+        const users = await User.find({
+            username: { $regex: `^${username}`, $options: "i" },
+        }).sort({ username: 1 }); // sort alphabetically
 
-            res.json(users);
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: "Failed to fetch users" });
-        }
+        res.json(users);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch users" });
     }
-);
+});
 
+// Get userId from token
 app.get("/api/userId", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -365,7 +371,8 @@ app.get("/api/userId", authMiddleware, async (req, res) => {
         res.status(500).json({ error: "Failed to fetch messages" });
     }
 });
-// Registration route
+
+// Registration route (email+password)
 app.post("/register", async (req, res) => {
     try {
         const {
@@ -410,7 +417,6 @@ app.post("/register", async (req, res) => {
             skills: owned_skills || [],
             interests: wanted_skills || [],
         });
-        
 
         await account.save();
         await user.save();
@@ -421,7 +427,8 @@ app.post("/register", async (req, res) => {
         res.status(500).json({ error: "Registration failed." });
     }
 });
-// Login route
+
+// Login route (email+password)
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -459,7 +466,8 @@ app.post("/login", async (req, res) => {
         res.status(500).json({ error: "Internal server error." });
     }
 });
-// Chat and Message Routes
+
+// Post, create a new chat, given the other partecipants' Ids
 app.post("/api/chats", authMiddleware, async (req, res) => {
     try {
         const { user1, user2 } = req.body;
@@ -476,7 +484,8 @@ app.post("/api/chats", authMiddleware, async (req, res) => {
         res.status(500).json({ error: "Failed to create chat" });
     }
 });
-// Message routes
+
+// Post, Send a message, given chatId and text
 app.post("/api/messages/send", authMiddleware, async (req, res) => {
     try {
         const { chatId, text } = req.body;
@@ -515,8 +524,10 @@ app.post("/api/messages/send", authMiddleware, async (req, res) => {
 app.post("/api/skills/add", authMiddleware, async (req, res) => {
     try {
         const { skillName, category } = req.body;
-        if (!skillName || !category){
-            return res.status(400).json({ error: "skillName and category required" });
+        if (!skillName || !category) {
+            return res
+                .status(400)
+                .json({ error: "skillName and category required" });
         }
 
         const skill = new Skill({
@@ -524,35 +535,102 @@ app.post("/api/skills/add", authMiddleware, async (req, res) => {
             name: skillName,
             slug: skillName.toLowerCase().replace(/\s+/g, "-"),
             categories: [category],
-        });;
+        });
         await skill.save();
-        res.json({ message: `Skill: "${skillName}" added to category: "${category}"` });
-
+        res.json({
+            message: `Skill: "${skillName}" added to category: "${category}"`,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to add skill" });
     }
 });
 
-// TODO: Add user liked/unliked by other user + Check matches
+// Add user liked/unliked by current user + Check matches
 app.post("/api/user/like", authMiddleware, async (req, res) => {
     const { likedUserId } = req.body;
     const userId = req.user.id;
     try {
-        const existingLike = await Like.findOne({ userId, likedUserId });
+        const existingLike = await Like.findOne({
+            userId: likedUserId,
+            likedUserId: userId,
+        });
+        const matched = existingLike ? true : false;
         const like = new Like({
             userId,
             likedUserId,
-        })
-        res.json({ message: `User ${userId} liked user ${likedUserId}` });
+            matched,
+        });
+        await like.save();
+        res.json({ message: matched ? "match" : "liked" });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to like user" });
     }
 });
-// TODO: Delete Accounts
 
-// TODO: Edit user information
+// Log out
+app.post("api/logout", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = User.findOne({ id: userId });
+        if (!user) return res.status(400).json({ error: "User not found" });
+        const account = Account.findOne({ email: user.email });
+        if (!account)
+            return res.status(400).json({ error: "Account not found" });
+        account.token = null;
+        await account.save();
+        res.status(200).json({ message: "User and related data deleted" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to delete user" });
+    }
+});
+
+// Delete user account and info
+app.post("/api/delete-user", authMiddleware, async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await User.findOne({ id: userId });
+        if (!user) return res.status(400).json({ error: "User not found" });
+
+        await Account.deleteOne({ email: user.email });
+        await Chat.deleteMany({ participants: userId });
+        await Message.deleteMany({ senderId: userId });
+        await Like.deleteMany({
+            $or: [{ fromUserId: userId }, { toUserId: userId }],
+        });
+        await User.deleteOne({ id: userId });
+
+        res.status(200).json({ message: "User and related data deleted" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to delete user" });
+    }
+});
+
+// TODO: Edit user information (fields: first_name, last_name, age, location, isPublic)
+app.post("/api/edit-user", authMiddleware, async (req, res) => {
+    const userId = req.user.id;
+    const { first_name, last_name, age, location, isPublic } = req.body;
+    try {
+        const user = await User.findOne({ id: userId });
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        if (first_name !== undefined) user.first_name = first_name;
+        if (last_name !== undefined) user.last_name = last_name;
+        if (age !== undefined) user.age = age;
+        if (location !== undefined) user.location = location;
+        if (isPublic !== undefined) user.isPublic = isPublic;
+
+        await user.save();
+
+        res.status(200).json({ message: "User updated successfully", user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to edit user" });
+    }
+});
 
 const http = require("http");
 const server = http.createServer(app); // wrap express app

@@ -59,6 +59,9 @@ const UserSchema = new mongoose.Schema(
     last_name: { type: String, required: true },
     moderator: { type: Boolean, default: false },
     location: { type: String, default: "" },
+    age: {type: Number, default: 18},
+    sharedLocation: {type: Boolean, default: false },
+    avatarLink: { type: String, default: "https://stock.adobe.com/tw/images/default-avatar-profile-icon-transparent-png-social-media-user-png-icon-whatsapp-dp/589932782"},
     skills: { type: [String], default: [] }, // array of skill slugs or ids
     interests: { type: [String], default: [] }, // array of string interests
   },
