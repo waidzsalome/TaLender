@@ -82,13 +82,13 @@ passport.use(
                         new User({
                             id: uuidv4(),
                             username: emailUsername,
-                            name: profile.name?.givenName || "Google",
-                            surname: profile.name?.familyName || "User",
+                            first_name: profile.name?.givenName || "Google",
+                            last_name: profile.name?.familyName || "User",
                             email,
                             status: "new",
                             location: "",
-                            owned_skills: [],
-                            wanted_skills: [],
+                            skills: [],
+                            interests: [],
                         });
 
                     await account.save();
