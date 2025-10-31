@@ -121,12 +121,14 @@ passport.use(
         }
     )
 );
-// --- Google Auth Routes ---
+
+// Google Login
 app.get(
     "/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+// Google authentication callback
 app.get(
     "/auth/google/callback",
     passport.authenticate("google", {
@@ -168,7 +170,7 @@ app.get(
     }
 );
 
-// Get all chats for the user
+// Get, get all chats for the user
 app.get("/api/chats/user", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -182,7 +184,7 @@ app.get("/api/chats/user", authMiddleware, async (req, res) => {
     }
 });
 
-// Get all messages of a specific chat, given a chatId
+// Get, get all messages of a specific chat, given a chatId
 app.get("/api/messages", authMiddleware, async (req, res) => {
     try {
         const { chatId } = req.query;
@@ -195,7 +197,7 @@ app.get("/api/messages", authMiddleware, async (req, res) => {
     }
 });
 
-// Get user data from a user Id. Only one user returned
+// Get, get user data from a user Id. Only one user returned
 app.get("/api/user/search-by-id", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -210,7 +212,7 @@ app.get("/api/user/search-by-id", authMiddleware, async (req, res) => {
     }
 });
 
-// Get a list of skills with optional category filter
+// Get, get a list of skills with optional category filter
 app.get("/api/skills", authMiddleware, async (req, res) => {
     try {
         const { category } = req.query;
@@ -283,14 +285,15 @@ app.post("/api/skills/add", authMiddleware, async (req, res) => {
     }
 });
 
+// Get, get a list of a user's skills, given their userId
 app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
     try {
-        const userId = req.params.id;
+        const userId = req.query.id;
         const user = await User.findOne({ id: userId });
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        skills = { owned: user.owned_skills, wanted: user.wanted_skills };
+        const skills = { owned: user.owned_skills, wanted: user.wanted_skills };
         res.json(skills);
     } catch (err) {
         console.error(err);
@@ -298,6 +301,7 @@ app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
     }
 });
 
+// Get, get a list of users recommended to current user
 // TODO: Add like/unlike checks for users to recommend
 app.get("/api/recommendedUsers/", authMiddleware, async (req, res) => {
     try {
@@ -344,6 +348,7 @@ app.get("/api/recommendedUsers/", authMiddleware, async (req, res) => {
     }
 });
 
+// Get, get users with a username that starts with input
 app.get("/api/users/search-by-username/:username", async (req, res) => {
     try {
         const { username } = req.params; // use req.params, not req.query
@@ -362,7 +367,7 @@ app.get("/api/users/search-by-username/:username", async (req, res) => {
     }
 });
 
-// Get userId from token
+// Get, get userId from token
 app.get("/api/userId", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -373,7 +378,7 @@ app.get("/api/userId", authMiddleware, async (req, res) => {
     }
 });
 
-// Registration route (email+password)
+// Post, Registration route (email+password)
 app.post("/register", async (req, res) => {
     try {
         const {
@@ -429,7 +434,7 @@ app.post("/register", async (req, res) => {
     }
 });
 
-// Login route (email+password)
+// Post, Login route (email+password)
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -521,7 +526,7 @@ app.post("/api/messages/send", authMiddleware, async (req, res) => {
     }
 });
 
-// Add skills to the database, given a name and a category.
+// Post, Add skills to the database, given a name and a category.
 app.post("/api/skills/add", authMiddleware, async (req, res) => {
     try {
         const { skillName, category } = req.body;
@@ -547,7 +552,7 @@ app.post("/api/skills/add", authMiddleware, async (req, res) => {
     }
 });
 
-// Add user liked/unliked by current user + Check matches
+// Post, Add user liked/unliked by current user + Check matches
 app.post("/api/user/like", authMiddleware, async (req, res) => {
     const { likedUserId } = req.body;
     const userId = req.user.id;
@@ -570,7 +575,7 @@ app.post("/api/user/like", authMiddleware, async (req, res) => {
     }
 });
 
-// Log out
+// Post, Log out
 app.post("api/logout", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -588,7 +593,7 @@ app.post("api/logout", authMiddleware, async (req, res) => {
     }
 });
 
-// Delete user account and info
+// Post, Delete user account and info
 app.post("/api/delete-user", authMiddleware, async (req, res) => {
     const userId = req.user.id;
     try {
@@ -610,7 +615,7 @@ app.post("/api/delete-user", authMiddleware, async (req, res) => {
     }
 });
 
-// TODO: Edit user information (fields: first_name, last_name, age, location, isPublic)
+// Post, Edit user information (fields: first_name, last_name, age, location, isPublic)
 app.post("/api/edit-user", authMiddleware, async (req, res) => {
     const userId = req.user.id;
     const { first_name, last_name, age, location, isPublic } = req.body;
@@ -633,6 +638,8 @@ app.post("/api/edit-user", authMiddleware, async (req, res) => {
     }
 });
 
+
+// Socket.io implementation, used to run instant messaging
 const http = require("http");
 const server = http.createServer(app); // wrap express app
 const { Server } = require("socket.io");
