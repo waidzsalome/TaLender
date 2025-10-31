@@ -10,7 +10,6 @@ const AccountSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 // CATEGORY
 const CategorySchema = new mongoose.Schema(
   {
@@ -20,7 +19,6 @@ const CategorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 // CHAT
 const ChatSchema = new mongoose.Schema(
   {
@@ -34,7 +32,6 @@ const ChatSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 // MESSAGE
 const MessageSchema = new mongoose.Schema({
   chatId: { type: String, required: true },
@@ -42,7 +39,6 @@ const MessageSchema = new mongoose.Schema({
   text: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
-
 // SKILL
 const SkillSchema = new mongoose.Schema(
   {
@@ -53,7 +49,6 @@ const SkillSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 // USER
 const UserSchema = new mongoose.Schema(
   {
@@ -70,6 +65,19 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// LIKE
+const LikeSchema = new mongoose.Schema(
+    {
+      fromUserId: { type: String, required: true }, // user who liked
+      toUserId: { type: String, required: true },   // user who was liked
+      matched: { type: Boolean, default: false },   // true if both liked each other
+    },
+    { timestamps: true }
+  );
+  
+  // ensure one "like" record per pair
+  LikeSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
+  
 // EXPORT MODELS
 const Account = mongoose.model("Account", AccountSchema);
 const Category = mongoose.model("Category", CategorySchema);
@@ -77,5 +85,5 @@ const Chat = mongoose.model("Chat", ChatSchema);
 const Message = mongoose.model("Message", MessageSchema);
 const Skill = mongoose.model("Skill", SkillSchema);
 const User = mongoose.model("User", UserSchema);
-
-module.exports = { Account, Category, Chat, Message, Skill, User };
+const Like = mongoose.model("Like", LikeSchema);
+module.exports = { Account, Category, Chat, Message, Skill, User, Like };
