@@ -219,9 +219,7 @@ app.get("/api/skills", authMiddleware, async (req, res) => {
         const filter = {};
 
         if (category) {
-            // Match skills whose categories array contains the slug
             filter.categories = category;
-            // or explicitly: filter.categories = { $in: [category] };
         }
 
         const skills = await Skill.find(filter);
