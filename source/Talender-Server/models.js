@@ -69,17 +69,16 @@ const UserSchema = new mongoose.Schema(
 );
 
 // LIKE
-const LikeSchema = new mongoose.Schema(
+const PreferenceSchema = new mongoose.Schema(
     {
-      fromUserId: { type: String, required: true }, // user who liked
-      toUserId: { type: String, required: true },   // user who was liked
-      matched: { type: Boolean, default: false },   // true if both liked each other
+      fromUserId: { type: String, required: true },
+      toUserId: { type: String, required: true },
+      value: { type: Number, enum: [-1, 0, 1], default: 0 }, // -1=dislike, 0=none, 1=like
     },
     { timestamps: true }
   );
   
-  // ensure one "like" record per pair
-  LikeSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
+  PreferenceSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
   
 // EXPORT MODELS
 const Account = mongoose.model("Account", AccountSchema);
@@ -88,5 +87,5 @@ const Chat = mongoose.model("Chat", ChatSchema);
 const Message = mongoose.model("Message", MessageSchema);
 const Skill = mongoose.model("Skill", SkillSchema);
 const User = mongoose.model("User", UserSchema);
-const Like = mongoose.model("Like", LikeSchema);
-module.exports = { Account, Category, Chat, Message, Skill, User, Like };
+const Preference = mongoose.model("Like", PreferenceSchema);
+module.exports = { Account, Category, Chat, Message, Skill, User, Preference };

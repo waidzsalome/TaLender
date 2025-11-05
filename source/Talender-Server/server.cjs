@@ -16,7 +16,7 @@ const {
     Message,
     Skill,
     Category,
-    Like,
+    Preference,
 } = require("./models");
 
 const {
@@ -25,6 +25,7 @@ const {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
 } = require("./secret");
+
 const app = express();
 const port = 3000;
 
@@ -123,14 +124,12 @@ passport.use(
 );
 
 // Google Login
-app.get(
-    "/auth/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
+app.get("/auth/google",
+passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
 // Google authentication callback
-app.get(
-    "/auth/google/callback",
+app.get("/auth/google/callback", 
     passport.authenticate("google", {
         failureRedirect: "http://localhost:5173/loginpage",
         session: true,
@@ -301,50 +300,51 @@ app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
 
 // Get, get a list of users recommended to current user
 // TODO: Add like/unlike checks for users to recommend
-app.get("/api/recommendedUsers/", authMiddleware, async (req, res) => {
+app.get("/api/recommendedUsers", authMiddleware, async (req, res) => {
     try {
-        const userId = req.user.id;
-        const user = await User.findOne({ id: userId });
-
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        const potentialMatches = await User.find({
-            id: { $ne: userId }, // exclude current user
-            $or: [
-                { interests: { $in: user.skills } },
-                { skills: { $in: user.interests } },
-            ],
-        });
-
-        // Compute overlap score for ranking
-        const rankedUsers = potentialMatches
-            .map((u) => {
-                const skillMatchCount = u.skills.filter((s) =>
-                    user.interests.includes(s)
-                ).length;
-
-                const interestMatchCount = u.interests.filter((i) =>
-                    user.skills.includes(i)
-                ).length;
-
-                const matchScore = skillMatchCount + interestMatchCount;
-
-                return {
-                    ...u.toObject(),
-                    matchScore,
-                };
-            })
-            .filter((u) => u.matchScore > 0)
-            .sort((a, b) => b.matchScore - a.matchScore);
-
-        res.json(rankedUsers);
+      const userId = req.user.id;
+      const user = await User.findOne({ id: userId });
+      if (!user) return res.status(404).json({ error: "User not found" });
+  
+      // find users who disliked the current user
+      const dislikes = await Preference.find({ toUserId: userId, value: -1 }).select("fromUserId");
+      const dislikers = dislikes.map((d) => d.fromUserId);
+  
+      // find potential matches excluding dislikers
+      const potentialMatches = await User.find({
+        id: { $ne: userId, $nin: dislikers },
+        $or: [
+          { interests: { $in: user.skills } },
+          { skills: { $in: user.interests } },
+        ],
+      });
+  
+      // compute and rank matches
+      const rankedUsers = potentialMatches
+        .map((u) => {
+          const skillMatchCount = u.skills.filter((s) =>
+            user.interests.includes(s)
+          ).length;
+          const interestMatchCount = u.interests.filter((i) =>
+            user.skills.includes(i)
+          ).length;
+          const matchScore = skillMatchCount + interestMatchCount;
+  
+          return {
+            ...u.toObject(),
+            matchScore,
+          };
+        })
+        .filter((u) => u.matchScore > 0)
+        .sort((a, b) => b.matchScore - a.matchScore);
+  
+      res.json(rankedUsers);
     } catch (err) {
-        console.error("Error fetching recommended users:", err);
-        res.status(500).json({ error: "Failed to fetch recommended users" });
+      console.error("Error fetching recommended users:", err);
+      res.status(500).json({ error: "Failed to fetch recommended users" });
     }
-});
+  });
+  
 
 // Get, get users with a username that starts with input
 app.get("/api/users/search-by-username/:username", async (req, res) => {
@@ -550,29 +550,55 @@ app.post("/api/skills/add", authMiddleware, async (req, res) => {
     }
 });
 
-// Post, Add user liked/unliked by current user + Check matches
-app.post("/api/user/like", authMiddleware, async (req, res) => {
-    const { likedUserId } = req.body;
-    const userId = req.user.id;
+// Post, sets user liked/unliked by current user + Check matches
+app.post("/api/user/preference", authMiddleware, async (req, res) => {
     try {
-        const existingLike = await Like.findOne({
-            userId: likedUserId,
-            likedUserId: userId,
+      const fromUserId = req.user.id;
+      const { toUserId, value } = req.body; // value ∈ {-1, 0, 1}
+  
+      if (![ -1, 0, 1 ].includes(value)) {
+        return res.status(400).json({ error: "Invalid preference value" });
+      }
+  
+      if (fromUserId === toUserId) {
+        return res.status(400).json({ error: "Cannot set preference for self" });
+      }
+  
+      // Upsert preference
+      const preference = await Preference.findOneAndUpdate(
+        { fromUserId, toUserId },
+        { value },
+        { upsert: true, new: true }
+      );
+  
+      // check if mutual like
+      let matched = false;
+      if (value === 1) {
+        const reverse = await Preference.findOne({
+          fromUserId: toUserId,
+          toUserId: fromUserId,
+          value: 1,
         });
-        const matched = existingLike ? true : false;
-        const like = new Like({
-            userId,
-            likedUserId,
-            matched,
-        });
-        await like.save();
-        res.json({ message: matched ? "match" : "liked" });
+        matched = !!reverse;
+      }
+  
+      res.json({
+        message: matched
+          ? "Mutual like — match formed!"
+          : value === 1
+          ? "Liked user"
+          : value === -1
+          ? "Disliked user"
+          : "Preference reset",
+        preference,
+        matched,
+      });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to like user" });
+      console.error("Error setting preference:", err);
+      res.status(500).json({ error: "Failed to set preference" });
     }
-});
-
+  });
+  
 // Post, Log out
 app.post("api/logout", authMiddleware, async (req, res) => {
     try {
