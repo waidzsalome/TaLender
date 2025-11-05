@@ -8,11 +8,11 @@ export const requestIsMe = () => {
 //profile page
 // get userInfo, which will be shown at the right part of profile page
 export const requestUserInfo = () => {
-  return request.get(`/api/users/search-by-username/:attanasioluca02`);
+  return request.get(`/api/user/search-by-id`);
 };
 //edit userinfo, when users want to change there basci info
 export const updateUserInfo = (userInfo: object) => {
-  return request.post(`/updateUsers`, userInfo);
+  return request.post(`/api/edit-user`, userInfo);
 };
 //??
 export const authGoogle = () => {
@@ -48,7 +48,9 @@ export const requestNotificatioList = () => {};
 
 //tailored page
 //search with keywords and filter(by types)
-export const requestSkillList = () => {};
+export const requestSkillList = (params: object) => {
+  return request.get("/api/skills", params);
+};
 
 //add my skills and interets
 export const addMySkills = () => {};

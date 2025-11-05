@@ -1,35 +1,10 @@
-interface User {
+export interface User {
   id: number;
-  name: string;
+  username: string;
   avatarLink: string;
-  age: number;
+  age: string;
   location: string;
-  showLocation: boolean;
-  interestList: Array<string>;
-  talantsList: Array<string>;
+  isPublic: boolean;
+  skills: Array<string>;
+  interests: Array<string>;
 }
-
-export const userWei: User = {
-  id: 1,
-  name: "Wei Han",
-  avatarLink: "blank",
-  age: 26,
-  location: "Roma,Italy",
-  showLocation: true,
-  interestList: [
-    "Eating",
-    "Day Dreaming",
-    "Badminton",
-    "Cooking",
-    "Skiing",
-    "Football",
-  ],
-  talantsList: [
-    "Eating",
-    "Day Dreaming",
-    "Badminton",
-    "Cooking",
-    "Skiing",
-    "Football",
-  ],
-};

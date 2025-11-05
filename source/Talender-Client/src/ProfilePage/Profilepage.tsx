@@ -17,15 +17,19 @@ import {
   Switch,
 } from "@mui/material";
 import { useNavigate } from "react-router";
-import { userWei } from "./mock";
+import type { User } from "./mock";
 
 const Profilepage: React.FC = () => {
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState({
-    name: "Weiiii",
-    age: 26,
-    location: "Roma, Italy",
-    isPublic: true,
+  const [userInfo, setUserInfo] = useState<User>({
+    id: 0,
+    username: "",
+    avatarLink: "",
+    age: "",
+    location: "",
+    isPublic: false,
+    skills: [],
+    interests: [],
   });
   const [editable, seteditable] = useState(false);
 
@@ -52,12 +56,11 @@ const Profilepage: React.FC = () => {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value =
         field === "isPublic" ? event.target.checked : event.target.value;
-      setUserInfo((prev) => ({ ...prev, [field]: value }));
-      // console.log({ ...userInfo, [field]: value });
+      setUserInfo({ ...userInfo, [field]: value });
     };
   const handleClickConfirmButton = async () => {
     try {
-      const { data } = await updateUserInfo({});
+      const { data } = await updateUserInfo(userInfo);
       console.log(data);
     } catch (error) {
       console.log(error);
@@ -65,7 +68,8 @@ const Profilepage: React.FC = () => {
   };
   const getUserInfo = async () => {
     try {
-      const { data } = await requestUserInfo();
+      const data = await requestUserInfo();
+      console.log(data);
       setUserInfo(data);
     } catch (error) {
       console.log(error);
@@ -170,9 +174,9 @@ const Profilepage: React.FC = () => {
                     <Grid size={8}>
                       <TextField
                         size="small"
-                        value={userInfo.name}
+                        value={userInfo?.username}
                         fullWidth
-                        onChange={handleChange("name")}
+                        onChange={handleChange("username")}
                       />
                     </Grid>
 
@@ -184,7 +188,7 @@ const Profilepage: React.FC = () => {
                       <TextField
                         size="small"
                         type="number"
-                        value={userInfo.age}
+                        value={userInfo?.age}
                         fullWidth
                         onChange={handleChange("age")}
                       />
@@ -200,14 +204,14 @@ const Profilepage: React.FC = () => {
                     >
                       <TextField
                         size="small"
-                        value={userInfo.location}
+                        value={userInfo?.location}
                         fullWidth
                         onChange={handleChange("location")}
                       />
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={userInfo.isPublic}
+                            checked={userInfo?.isPublic}
                             onChange={handleChange("isPublic")}
                           />
                         }
@@ -235,7 +239,7 @@ const Profilepage: React.FC = () => {
                       <Typography>Name</Typography>
                     </Grid>
                     <Grid size={8}>
-                      <Typography>{userInfo.name}</Typography>
+                      <Typography>{userInfo?.username}</Typography>
                     </Grid>
 
                     {/* Age */}
@@ -243,7 +247,7 @@ const Profilepage: React.FC = () => {
                       <Typography>Age</Typography>
                     </Grid>
                     <Grid size={8}>
-                      <Typography>{userInfo.age}</Typography>
+                      <Typography>{userInfo?.age}</Typography>
                     </Grid>
 
                     {/* Location */}
@@ -254,10 +258,10 @@ const Profilepage: React.FC = () => {
                       size={8}
                       sx={{ display: "flex", alignItems: "center", gap: 1 }}
                     >
-                      <Typography>{userInfo.location}</Typography>
+                      <Typography>{userInfo?.location}</Typography>
                       <FormControlLabel
                         control={
-                          <Switch checked={userInfo.isPublic} disabled />
+                          <Switch checked={userInfo?.isPublic} disabled />
                         }
                         label="Public"
                       />
@@ -289,8 +293,13 @@ const Profilepage: React.FC = () => {
                 </Box>
 
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {userWei.interestList.map((interest) => (
-                    <Chip key={interest} label={interest} variant="outlined" />
+                  {userInfo?.interests.map((interest) => (
+                    <Chip
+                      key={interest}
+                      label={interest}
+                      variant="outlined"
+                      color="primary"
+                    />
                   ))}
                 </Box>
               </Box>
@@ -317,7 +326,7 @@ const Profilepage: React.FC = () => {
                 </Box>
 
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {userWei.talantsList.map((talent) => (
+                  {userInfo?.skills.map((talent) => (
                     <Chip
                       key={talent}
                       label={talent}

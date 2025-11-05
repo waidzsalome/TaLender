@@ -10,10 +10,11 @@ import Chatpage from "./ChatPage/Chatpage";
 import ManagePage from "./MangementPage/ManagePage";
 import Tailoredpage from "./TailoredPage/Tailoredpage";
 import LoginRequired from "./components/LoginRequired";
+import GoogleSuccess from "./components/GoogleSuccess";
 
 const routesMap = [
   {
-    path: "profilepage",
+    path: "/profilepage",
     element: <Profilepage />,
   },
   {
@@ -42,11 +43,13 @@ const App: React.FC = () => {
         {/* public webpage */}
         <Route path="/" element={<Mainpage />} />
         <Route path="/loginrequired" element={<LoginRequired />} />
+        <Route path="/google-success" element={<GoogleSuccess />} />
         {/* protected webpage */}
         {routesMap.map((routeItem) => (
           <Route
             path={routeItem.path}
             element={<ProtectedRoute>{routeItem.element}</ProtectedRoute>}
+            // element={routeItem.element}
           />
         ))}
       </Routes>

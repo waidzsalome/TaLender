@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Box,
@@ -22,6 +22,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import { categories, skilltypes } from "./constants";
 import type { SelectChangeEvent } from "@mui/material";
+import { requestSkillList } from "../service/api";
 
 const Tailoredpage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -40,6 +41,7 @@ const Tailoredpage: React.FC = () => {
   };
 
   const handleApply = () => {
+    getSkillsList();
     console.log({
       keyword,
       filter,
@@ -78,6 +80,17 @@ const Tailoredpage: React.FC = () => {
   };
 
   const open = Boolean(anchorEl);
+  const getSkillsList = async () => {
+    try {
+      const data = await requestSkillList({});
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getSkillsList();
+  }, []);
 
   return (
     <Container sx={{ height: "90vh", position: "relative" }}>
@@ -251,7 +264,7 @@ const Tailoredpage: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* ✅ Add new Skills 弹窗 */}
+      {/* Add new Skills Modal */}
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
