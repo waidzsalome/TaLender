@@ -17,19 +17,24 @@ import {
   Switch,
 } from "@mui/material";
 import { useNavigate } from "react-router";
-import type { User } from "./mock";
+import type { User } from "../types/types";
 
 const Profilepage: React.FC = () => {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState<User>({
-    id: 0,
+    id: "",
     username: "",
-    avatarLink: "",
-    age: "",
+    email: "",
+    first_name: "",
+    last_name: "",
+    moderator: false,
     location: "",
-    isPublic: false,
+    age: 0,
+    sharedLocation: false,
+    avatarLink: "",
     skills: [],
     interests: [],
+    isPublic: false,
   });
   const [editable, seteditable] = useState(false);
 
@@ -70,7 +75,7 @@ const Profilepage: React.FC = () => {
     try {
       const data = await requestUserInfo();
       console.log(data);
-      setUserInfo(data);
+      setUserInfo(data as unknown as User);
     } catch (error) {
       console.log(error);
     }
@@ -107,11 +112,11 @@ const Profilepage: React.FC = () => {
               >
                 <Avatar
                   alt="User Avatar"
-                  src="/static/images/avatar/1.jpg"
+                  src={userInfo.avatarLink}
                   sx={{ width: 100, height: 100 }}
                 />
                 <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  Wei Han
+                  {`${userInfo.first_name} ${userInfo.last_name}`}
                 </Typography>
                 <Divider sx={{ width: "80%", my: 2 }} />
               </Box>

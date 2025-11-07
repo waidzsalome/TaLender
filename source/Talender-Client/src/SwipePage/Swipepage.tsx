@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Container,
   Box,
@@ -14,33 +14,59 @@ import {
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
+import { requestUnmatchedUserLists, userPreference } from "../service/api";
+import type { User } from "../types/types";
+import { useNavigate } from "react-router";
+import { Swiper as SwiperType } from "swiper";
+import { mockList } from "./types";
 
-const images = [
-  {
-    url: "https://i.pinimg.com/474x/e5/65/5f/e5655f7b5dc8a528247e66834a9b61b2.jpg",
-    caption: "Pink Labubu",
-  },
-  {
-    url: "https://i.pinimg.com/736x/90/83/0f/90830f4818ae6011ab79ef4b0348c5e8.jpg",
-    caption: "Purple Labubu",
-  },
-  {
-    url: "https://i.pinimg.com/474x/a5/b8/d5/a5b8d5d5f63c9ca63378ae8a91bd989b.jpg",
-    caption: "Green Labubu",
-  },
-];
-const skills = ["Eating", "Badmiinton", "Day Dreaming"];
-const interests = ["Tennis", "Cooking", "Catch Fish"];
 const Swipepage: React.FC = () => {
-  const handleClickYes = () => {
-    console.log("click yes");
+  const navigate = useNavigate();
+  const [userList, setUserList] = useState<User[]>([]);
+  const swiperRef = useRef<SwiperType>(null);
+  // const [curUnmatchedUID, setCurUnmatchedUID] = useState();
+  const handleClickYes = async (toUserId: string) => {
+    console.log("click yes", toUserId);
+    console.log("");
+    try {
+      const res = await userPreference({
+        toUserId: toUserId,
+        value: 1,
+      });
+      console.log(res);
+      swiperRef.current?.slideNext();
+    } catch (error) {
+      console.log(error);
+    }
   };
-  const handleClickNo = () => {
-    console.log("click no");
+  const handleClickNo = async (toUserId: string) => {
+    console.log("click no", toUserId);
+    try {
+      const res = await userPreference({
+        toUserId: toUserId,
+        value: -1,
+      });
+      console.log(res);
+      swiperRef.current?.slideNext();
+    } catch (error) {
+      console.log(error);
+    }
   };
+  const fetchUnmatchedUserList = async () => {
+    try {
+      const res = await requestUnmatchedUserLists();
+      console.log(res);
+      setUserList([...(res as unknown as User[]), ...mockList]);
+    } catch (error) {
+      console.log("swipePage", error);
+      return navigate("/loginrequired");
+    }
+  };
+  useEffect(() => {
+    fetchUnmatchedUserList();
+  }, []);
   return (
     <Container
       sx={{
@@ -52,11 +78,10 @@ const Swipepage: React.FC = () => {
     >
       <Box>
         <Swiper
-          modules={[Navigation]}
-          navigation
+          onSwiper={(swiper) => (swiperRef.current = swiper)}
           style={{ width: 500, height: "70vh" }}
         >
-          {images.map((item, i) => (
+          {userList?.map((item, i) => (
             <SwiperSlide
               key={i}
               style={{
@@ -69,8 +94,8 @@ const Swipepage: React.FC = () => {
               <Card sx={{ maxWidth: 500, textAlign: "center" }}>
                 <CardMedia
                   component="img"
-                  image={item.url}
-                  alt={item.caption}
+                  image={item?.avatarLink}
+                  alt={item?.last_name}
                   sx={{
                     width: 400,
                     height: "20vh",
@@ -113,7 +138,7 @@ const Swipepage: React.FC = () => {
                         gap={1}
                         sx={{ mb: 2 }}
                       >
-                        {skills.map((s) => (
+                        {item?.skills?.map((s) => (
                           <Chip
                             key={s}
                             label={s}
@@ -149,7 +174,7 @@ const Swipepage: React.FC = () => {
                         gap={1}
                         sx={{ mb: 3 }}
                       >
-                        {interests.map((i) => (
+                        {item?.interests.map((i) => (
                           <Chip
                             key={i}
                             label={i}
@@ -171,7 +196,9 @@ const Swipepage: React.FC = () => {
                     >
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <LocationOnIcon color="action" />
-                        <Typography variant="body2">Roma, Italy</Typography>
+                        <Typography variant="body2">
+                          {item.sharedLocation ? item.location : null}
+                        </Typography>
                       </Stack>
 
                       <Link href="#" underline="hover" color="primary">
@@ -193,14 +220,14 @@ const Swipepage: React.FC = () => {
                       <Button
                         variant="contained"
                         color="error"
-                        onClick={handleClickNo}
+                        onClick={() => handleClickNo(item.id)}
                       >
                         No
                       </Button>
                       <Button
                         variant="contained"
                         color="success"
-                        onClick={handleClickYes}
+                        onClick={() => handleClickYes(item.id)}
                       >
                         yes
                       </Button>

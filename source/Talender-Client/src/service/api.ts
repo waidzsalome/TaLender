@@ -1,4 +1,5 @@
 import request from "../service/request";
+import type { User } from "../types/types";
 
 // check if current user has a authenticated token
 export const requestIsMe = () => {
@@ -27,13 +28,17 @@ export const authGoogle = () => {
 export const requestLogOut = () => {};
 //chatpage
 // get userList(who chat with current user，left part of chat page)
-export const requestMessageList = () => {};
+export const requestMessageList = () => {
+  return request.get("/api/chats/user");
+};
 
 //chatting with a  specific (right part of chat page)
 export const requestChatsList = () => {};
 
 //send message
-export const sendMessage = () => {};
+export const sendMessage = (params: string) => {
+  return request.post("/api/messages/send", params);
+};
 
 //how to receive?
 
@@ -60,8 +65,10 @@ export const addNewSkills = () => {};
 
 // swipe page
 //get userList to be matched
-export const requestUnmatchedUserLists = () => {};
-//like
-export const likeUser = () => {};
-//don't like
-export const unLikeUser = () => {};
+export const requestUnmatchedUserLists = () => {
+  return request.get<User[]>("/api/recommendedUsers");
+};
+//like and unLike, called preference
+export const userPreference = (params: object) => {
+  return request.post("/api/user/preference", params);
+};

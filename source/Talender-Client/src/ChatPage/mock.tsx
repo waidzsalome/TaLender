@@ -1,9 +1,4 @@
-interface User {
-  id: number;
-  name: string;
-  avatarLink: string;
-  lastetNews: string;
-}
+import type { User } from "../types/types";
 interface Message {
   id: string;
   context: string;

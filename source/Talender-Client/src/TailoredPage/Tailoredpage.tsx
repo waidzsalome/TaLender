@@ -20,11 +20,13 @@ import {
   DialogActions,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { categories, skilltypes } from "./constants";
+import { muiColors, skilltypes } from "./constants";
 import type { SelectChangeEvent } from "@mui/material";
 import { requestSkillList } from "../service/api";
+import type { Skill } from "../types/types";
 
 const Tailoredpage: React.FC = () => {
+  const [skillsList, setSkillsList] = useState<Skill[]>();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedItem, setSelectedItem] = useState<string>("");
   const [filter, setFilter] = useState("");
@@ -83,10 +85,14 @@ const Tailoredpage: React.FC = () => {
   const getSkillsList = async () => {
     try {
       const data = await requestSkillList({});
+      setSkillsList(data as unknown as Skill[]);
       console.log(data);
     } catch (error) {
       console.log(error);
     }
+  };
+  const getRandomColor = () => {
+    return muiColors[Math.floor(Math.random() * muiColors.length)];
   };
   useEffect(() => {
     getSkillsList();
@@ -162,13 +168,13 @@ const Tailoredpage: React.FC = () => {
       </Box>
 
       {/* display by categories */}
-      <Box sx={{ p: 3 }}>
-        {categories.map((cat) => (
+      <Box sx={{ p: 3, height: "80vh", overflowY: "auto" }}>
+        {skillsList?.map((cat) => (
           <Box key={cat.name} sx={{ mb: 4 }}>
             <Chip
               label={cat.name}
               sx={{
-                bgcolor: cat.color,
+                bgcolor: getRandomColor(),
                 color: "white",
                 fontWeight: "bold",
                 fontSize: 16,
@@ -177,7 +183,7 @@ const Tailoredpage: React.FC = () => {
               }}
             />
             <Stack direction="row" flexWrap="wrap" gap={1}>
-              {cat.items.map((item) => (
+              {cat.categories.map((item) => (
                 <Chip
                   key={item}
                   label={item}
@@ -230,7 +236,7 @@ const Tailoredpage: React.FC = () => {
         </Popover>
       </Box>
 
-      {/* ✅ 右下角悬浮提示 */}
+      {/* 右下角悬浮提示 */}
       <Box
         sx={{
           position: "fixed",

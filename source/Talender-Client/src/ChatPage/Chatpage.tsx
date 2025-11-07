@@ -22,6 +22,7 @@ import {
 import SendIcon from "@mui/icons-material/Send";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import { userList, messageData } from "./mock";
+import { requestMessageList, sendMessage } from "../service/api";
 
 const ChatPage: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -33,16 +34,23 @@ const ChatPage: React.FC = () => {
     setSelectedIndex(index);
     setCurChatUsername(userList[index].name);
   };
-  const handleSend = () => {
+  const handleSend = async () => {
     //simulate data submission
     console.log(input);
-    setInput("");
+    // setInput("");
+    try {
+      const data = await sendMessage(input);
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
     //simulate set current user
+    requestMessageList();
     setCurUserID(1);
-  }, [curUserID]);
+  }, []);
   return (
     <Container sx={{ height: "90vh" }}>
       <Box>
@@ -71,10 +79,10 @@ const ChatPage: React.FC = () => {
                       onClick={() => handleListItemClick(index)}
                     >
                       <ListItemAvatar>
-                        <Avatar alt={user.name} src={user.avatarLink} />
+                        <Avatar alt={user.username} src={user.avatarLink} />
                       </ListItemAvatar>
                       <ListItemText
-                        primary={user.name}
+                        primary={user.username}
                         secondary={
                           <React.Fragment>
                             <Typography
@@ -82,7 +90,7 @@ const ChatPage: React.FC = () => {
                               variant="body2"
                               sx={{ color: "text.primary", display: "inline" }}
                             >
-                              {user.lastetNews}
+                              {user.lastesnews}
                             </Typography>
                           </React.Fragment>
                         }
