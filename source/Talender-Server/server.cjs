@@ -643,7 +643,7 @@ app.post("/api/logout", authMiddleware, async (req, res) => {
   });
   
 // Post, Delete user account and info
-app.post("/api/delete-user", async (req, res) => {
+app.post("/api/delete-user", authMiddleware, async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await User.findOne({ id: userId });
