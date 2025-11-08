@@ -172,16 +172,34 @@ app.get("/auth/google/callback",
 // Get, get all chats for the user
 app.get("/api/chats/user", authMiddleware, async (req, res) => {
     try {
-        const userId = req.user.id;
-        const chats = await Chat.find({ participants: userId }).sort({
-            updatedAt: -1,
+      const userId = req.user.id;
+      const chats = await Chat.find({ participants: userId }).sort({ updatedAt: -1 });
+      const likes = await Preference.find({ fromUserId: userId, value: 1 });
+      const mutuals = [];
+  
+      for (const like of likes) {
+        const reverse = await Preference.findOne({
+          fromUserId: like.toUserId,
+          toUserId: userId,
+          value: 1,
         });
-        res.json(chats);
+        if (reverse) mutuals.push(like.toUserId);
+      }
+      // mutuals is the users which liked user.id, if user.id liked them too
+      // Excluding matches that already have a chat
+      const existingIds = new Set(chats.flatMap(c => c.participants));
+      const newMatches = mutuals.filter(id => !existingIds.has(id) && id !== userId);
+      const matchedUsers = await User.find({ id: { $in: newMatches } });
+      res.json({
+        chats,
+        matches: matchedUsers,
+      });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to fetch user chats" });
+      console.error("Error fetching chats and matches:", err);
+      res.status(500).json({ error: "Failed to fetch chats and matches" });
     }
-});
+  });
+  
 
 // Get, get all messages of a specific chat, given a chatId
 app.get("/api/messages", authMiddleware, async (req, res) => {
