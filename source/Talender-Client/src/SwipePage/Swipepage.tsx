@@ -20,7 +20,7 @@ import { requestUnmatchedUserLists, userPreference } from "../service/api";
 import type { User } from "../types/types";
 import { useNavigate } from "react-router";
 import { Swiper as SwiperType } from "swiper";
-import { mockList } from "./types";
+// import { mockList } from "./types";
 
 const Swipepage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +29,6 @@ const Swipepage: React.FC = () => {
   // const [curUnmatchedUID, setCurUnmatchedUID] = useState();
   const handleClickYes = async (toUserId: string) => {
     console.log("click yes", toUserId);
-    console.log("");
     try {
       const res = await userPreference({
         toUserId: toUserId,
@@ -58,7 +57,8 @@ const Swipepage: React.FC = () => {
     try {
       const res = await requestUnmatchedUserLists();
       console.log(res);
-      setUserList([...(res as unknown as User[]), ...mockList]);
+      // setUserList([...(res as unknown as User[]), ...mockList]);
+      setUserList(res as unknown as User[]);
     } catch (error) {
       console.log("swipePage", error);
       return navigate("/loginrequired");

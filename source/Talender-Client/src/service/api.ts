@@ -15,17 +15,15 @@ export const requestUserInfo = () => {
 export const updateUserInfo = (userInfo: object) => {
   return request.post(`/api/edit-user`, userInfo);
 };
-//??
-export const authGoogle = () => {
-  return request.post("/login", {
-    username: "lucatest",
-    password: "supersecure123",
-  });
-};
 
 //delete account
+export const deleteAccount = () => {
+  return request.post("/api/delete-user");
+};
 // log out
-export const requestLogOut = () => {};
+export const requestLogOut = () => {
+  return request.post("/api/logout");
+};
 //chatpage
 // get userList(who chat with current user，left part of chat page)
 export const requestMessageList = () => {
@@ -33,7 +31,9 @@ export const requestMessageList = () => {
 };
 
 //chatting with a  specific (right part of chat page)
-export const requestChatsList = () => {};
+export const requestChatsList = (chatId: string) => {
+  return request.get(`/api/messages?${chatId}`);
+};
 
 //send message
 export const sendMessage = (params: string) => {
@@ -42,26 +42,24 @@ export const sendMessage = (params: string) => {
 
 //how to receive?
 
-//notification
-// how to get immediate notification
-
-//get the number of notification, the bagde of the bell
-export const requestNotificationNum = () => {};
-
-//get the notification list
-export const requestNotificatioList = () => {};
-
 //tailored page
 //search with keywords and filter(by types)
 export const requestSkillList = (params: object) => {
   return request.get("/api/skills", params);
 };
 
+export const getCategories = () => {
+  return request.get("/api/categories");
+};
 //add my skills and interets
-export const addMySkills = () => {};
+export const addMySkills = (params: object) => {
+  return request.post("/api/skills/add", params);
+};
 
 // add skills which is not occured in our lists
-export const addNewSkills = () => {};
+export const addNewSkills = (params: object) => {
+  return request.post("", params);
+};
 
 // swipe page
 //get userList to be matched
@@ -72,3 +70,11 @@ export const requestUnmatchedUserLists = () => {
 export const userPreference = (params: object) => {
   return request.post("/api/user/preference", params);
 };
+//notification
+// how to get immediate notification
+
+//get the number of notification, the bagde of the bell
+export const requestNotificationNum = () => {};
+
+//get the notification list
+export const requestNotificatioList = () => {};

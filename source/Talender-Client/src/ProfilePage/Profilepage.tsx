@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { requestUserInfo, updateUserInfo } from "../service/api";
+import {
+  deleteAccount,
+  requestLogOut,
+  requestUserInfo,
+  updateUserInfo,
+} from "../service/api";
 import {
   Container,
   Box,
@@ -45,11 +50,23 @@ const Profilepage: React.FC = () => {
     console.log("click modify");
     seteditable(!editable);
   };
-  const handleClickLogoutButton = () => {
+  const handleClickLogoutButton = async () => {
     console.log("click logout");
+    try {
+      const res = await requestLogOut({});
+      console.log(res);
+    } catch (error) {
+      console.log(error);
+    }
   };
-  const handleClickDeleteButton = () => {
+  const handleClickDeleteButton = async () => {
     console.log("click delete");
+    try {
+      const res = await deleteAccount({});
+      console.log(res);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
