@@ -24,6 +24,8 @@ const ChatSchema = new mongoose.Schema(
   {
     chatId: { type: String, required: true, unique: true },
     participants: { type: [String], required: true }, // array of user UUIDs
+    participants_names: {},
+    partecipants_pics: {},
     lastMessage: {
       text: { type: String },
       senderId: { type: String },

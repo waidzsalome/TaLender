@@ -282,6 +282,27 @@ app.get("/api/categories", async (req, res) => {
     }
 });
 
+app.get("/api/categories-with-skills", async (req, res) => {
+    try {
+      const categoriesWithSkills = await Category.aggregate([
+        {
+          $lookup: {
+            from: "skills",
+            localField: "slug",
+            foreignField: "categories",
+            as: "skills",
+          },
+        },
+      ]);
+  
+      res.json(categoriesWithSkills);
+    } catch (err) {
+      console.error("Error fetching categories with skills:", err);
+      res.status(500).json({ error: "Failed to fetch categories with skills" });
+    }
+  });
+  
+
 // Post, Add a skill to a user's given a skillId and a type, which can be owned or wanted.
 app.post("/api/user-skills/add", authMiddleware, async (req, res) => {
     try {
