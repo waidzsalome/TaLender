@@ -34,3 +34,10 @@ export const response = [
     ],
   },
 ];
+
+export interface Categories {
+  id: string;
+  name: string;
+  slug: string;
+  _id: string;
+}

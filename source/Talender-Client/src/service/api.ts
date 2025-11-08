@@ -53,12 +53,12 @@ export const getCategories = () => {
 };
 //add my skills and interets
 export const addMySkills = (params: object) => {
-  return request.post("/api/skills/add", params);
+  return request.post("/api/user-skills/add", params);
 };
 
 // add skills which is not occured in our lists
 export const addNewSkills = (params: object) => {
-  return request.post("", params);
+  return request.post("/api/skills/add", params);
 };
 
 // swipe page

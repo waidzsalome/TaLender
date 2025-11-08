@@ -20,10 +20,10 @@ import {
   DialogActions,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { muiColors, skilltypes } from "./constants";
+import { muiColors } from "./constants";
 import type { SelectChangeEvent } from "@mui/material";
-import { requestSkillList } from "../service/api";
-import type { Skill } from "../types/types";
+import { requestSkillList, getCategories, addNewSkills } from "../service/api";
+import type { Skill, Categories } from "../types/types";
 
 const Tailoredpage: React.FC = () => {
   const [skillsList, setSkillsList] = useState<Skill[]>();
@@ -31,6 +31,7 @@ const Tailoredpage: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<string>("");
   const [filter, setFilter] = useState("");
   const [keyword, setKeyword] = useState("");
+  const [skillCate, setSkillCate] = useState<Categories[]>();
 
   //Add new skills Modal
   const [openDialog, setOpenDialog] = useState(false);
@@ -75,8 +76,20 @@ const Tailoredpage: React.FC = () => {
     setNewSkillName("");
     setNewSkillType("");
   };
-  const handleConfirmAddSkill = () => {
-    console.log("New skill:", { type: newSkillType, skill: newSkillName });
+  const handleConfirmAddSkill = async () => {
+    console.log("New skill:", {
+      category: newSkillType,
+      skillName: newSkillName,
+    });
+    try {
+      const data = await addNewSkills({
+        category: newSkillType,
+        skillName: newSkillName,
+      });
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
     //submit data
     handleCloseDialog();
   };
@@ -91,11 +104,21 @@ const Tailoredpage: React.FC = () => {
       console.log(error);
     }
   };
+  const getCategoriesList = async () => {
+    try {
+      const data = await getCategories();
+      setSkillCate(data as unknown as Categories[]);
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const getRandomColor = () => {
     return muiColors[Math.floor(Math.random() * muiColors.length)];
   };
   useEffect(() => {
     getSkillsList();
+    getCategoriesList();
   }, []);
 
   return (
@@ -145,8 +168,8 @@ const Tailoredpage: React.FC = () => {
             }}
           >
             <MenuItem value="">None</MenuItem>
-            {skilltypes.map((item) => (
-              <MenuItem value={item}>{item}</MenuItem>
+            {skillCate?.map((item) => (
+              <MenuItem value={item.name}>{item.name}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -290,16 +313,16 @@ const Tailoredpage: React.FC = () => {
           }}
         >
           <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel id="type-label">Type</InputLabel>
+            <InputLabel id="type-label">Categories</InputLabel>
             <Select
               labelId="type-label"
               value={newSkillType}
               onChange={(e) => setNewSkillType(e.target.value)}
               label="Type"
             >
-              {skilltypes.map((item) => (
-                <MenuItem id={item} value={item}>
-                  {item}
+              {skillCate?.map((item) => (
+                <MenuItem id={item.name} value={item.name}>
+                  {item.name}
                 </MenuItem>
               ))}
             </Select>
