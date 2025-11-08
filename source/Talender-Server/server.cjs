@@ -4,7 +4,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
-const { createProxyMiddleware } = require("http-proxy-middleware");
 const session = require("express-session");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
@@ -17,6 +16,7 @@ const {
     Skill,
     Category,
     Preference,
+    Blacklist
 } = require("./models");
 
 const {
@@ -120,13 +120,11 @@ passport.use(
                 return done(err);
             }
         }
-    )
-);
+));
 
 // Google Login
 app.get("/auth/google",
-passport.authenticate("google", { scope: ["profile", "email"] })
-);
+passport.authenticate("google", { scope: ["profile", "email"] }));
 
 // Google authentication callback
 app.get("/auth/google/callback", 
@@ -166,8 +164,7 @@ app.get("/auth/google/callback",
             console.error("Google OAuth callback error:", err);
             res.status(500).json({ error: "Google login failed" });
         }
-    }
-);
+});
 
 // Get, get all chats for the user
 app.get("/api/chats/user", authMiddleware, async (req, res) => {
@@ -198,8 +195,7 @@ app.get("/api/chats/user", authMiddleware, async (req, res) => {
       console.error("Error fetching chats and matches:", err);
       res.status(500).json({ error: "Failed to fetch chats and matches" });
     }
-  });
-  
+});
 
 // Get, get all messages of a specific chat, given a chatId
 app.get("/api/messages", authMiddleware, async (req, res) => {
@@ -362,7 +358,6 @@ app.get("/api/recommendedUsers", authMiddleware, async (req, res) => {
     }
   });
   
-
 // Get, get users with a username that starts with input
 app.get("/api/users/search-by-username/:username", async (req, res) => {
     try {
@@ -630,7 +625,7 @@ app.post("/api/logout", authMiddleware, async (req, res) => {
         { email: user.email },
         { $set: { token: "" } }
       );
-  
+      await Blacklist.create({ token: req.headers.authorization.split(" ")[1] });
       if (result.matchedCount === 0) {
         return res.status(400).json({ error: "Account not found" });
       }
@@ -640,7 +635,7 @@ app.post("/api/logout", authMiddleware, async (req, res) => {
       console.error("Logout error:", err);
       return res.status(500).json({ error: "Failed to log out user" });
     }
-  });
+});
   
 // Post, Delete user account and info
 app.post("/api/delete-user", authMiddleware, async (req, res) => {
@@ -710,5 +705,4 @@ io.on("connection", (socket) => {
     });
 });
 
-// Replace your old listen:
 server.listen(3000, () => console.log("Server running on port 3000"));

@@ -88,4 +88,5 @@ const Message = mongoose.model("Message", MessageSchema);
 const Skill = mongoose.model("Skill", SkillSchema);
 const User = mongoose.model("User", UserSchema);
 const Preference = mongoose.model("Like", PreferenceSchema);
-module.exports = { Account, Category, Chat, Message, Skill, User, Preference };
+const Blacklist = mongoose.model("Blacklist", new mongoose.Schema({ token: String }));
+module.exports = { Account, Category, Chat, Message, Skill, User, Preference, Blacklist};
