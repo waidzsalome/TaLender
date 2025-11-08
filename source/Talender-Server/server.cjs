@@ -275,15 +275,15 @@ app.post("/api/user-skills/add", authMiddleware, async (req, res) => {
         if (!user) return res.status(404).json({ error: "User not found" });
 
         if (type === "owned") {
-            if (user.owned_skills.includes(skillId)) {
+            if (user.skills.includes(skillId)) {
                 return res.status(400).json({ error: "Skill already owned" });
             }
-            user.owned_skills.push(skillId);
+            user.skills.push(skillId);
         } else if (type === "wanted") {
-            if (user.wanted_skills.includes(skillId)) {
+            if (user.interests.includes(skillId)) {
                 return res.status(400).json({ error: "Skill already wanted" });
             }
-            user.wanted_skills.push(skillId);
+            user.interests.push(skillId);        
         } else {
             return res.status(400).json({ error: "Invalid type" });
         }
@@ -304,7 +304,7 @@ app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        const skills = { owned: user.owned_skills, wanted: user.wanted_skills };
+        const skills = { owned: user.skills, wanted: user.interests };
         res.json(skills);
     } catch (err) {
         console.error(err);
@@ -399,8 +399,8 @@ app.post("/register", async (req, res) => {
             email,
             status,
             location,
-            owned_skills,
-            wanted_skills,
+            skills,
+            interests,
         } = req.body;
 
         const existing = await Account.findOne({
@@ -430,8 +430,8 @@ app.post("/register", async (req, res) => {
             email,
             status,
             location,
-            skills: owned_skills || [],
-            interests: wanted_skills || [],
+            skills: skills || [],
+            interests: interests || []
         });
 
         await account.save();
@@ -705,4 +705,4 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(3000, () => console.log("Server running on port 3000"));
+server.listen(port, () => console.log("Server running on port 3000"));
