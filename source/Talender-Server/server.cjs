@@ -617,25 +617,33 @@ app.post("/api/user/preference", authMiddleware, async (req, res) => {
   });
   
 // Post, Log out
-app.post("api/logout", authMiddleware, async (req, res) => {
+app.post("/api/logout", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
-        const user = User.findOne({ id: userId });
-        if (!user) return res.status(400).json({ error: "User not found" });
-        const account = Account.findOne({ email: user.email });
-        if (!account)
-            return res.status(400).json({ error: "Account not found" });
-        account.token = null;
-        await account.save();
-        res.status(200).json({ message: "User and related data deleted" });
+  
+      // get user document
+      const user = await User.findOne({ id: userId });
+      if (!user) return res.status(400).json({ error: "User not found" });
+  
+      // directly update the account token to null
+      const result = await Account.updateOne(
+        { email: user.email },
+        { $set: { token: "" } }
+      );
+  
+      if (result.matchedCount === 0) {
+        return res.status(400).json({ error: "Account not found" });
+      }
+  
+      return res.status(200).json({ message: "Logged out successfully" });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to delete user" });
+      console.error("Logout error:", err);
+      return res.status(500).json({ error: "Failed to log out user" });
     }
-});
-
+  });
+  
 // Post, Delete user account and info
-app.post("/api/delete-user", authMiddleware, async (req, res) => {
+app.post("/api/delete-user", async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await User.findOne({ id: userId });
@@ -644,7 +652,7 @@ app.post("/api/delete-user", authMiddleware, async (req, res) => {
         await Account.deleteOne({ email: user.email });
         await Chat.deleteMany({ participants: userId });
         await Message.deleteMany({ senderId: userId });
-        await Like.deleteMany({
+        await Preference.deleteMany({
             $or: [{ fromUserId: userId }, { toUserId: userId }],
         });
         await User.deleteOne({ id: userId });
