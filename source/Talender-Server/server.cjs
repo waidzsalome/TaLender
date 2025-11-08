@@ -211,19 +211,22 @@ app.get("/api/messages", authMiddleware, async (req, res) => {
 });
 
 // Get, get user data from a user Id. Only one user returned
-app.get("/api/user/search-by-id", authMiddleware, async (req, res) => {
+app.get("/api/user/search-by-id/:id?", authMiddleware, async (req, res) => {
     try {
-        const userId = req.user.id;
-        const user = await User.findOne({ id: userId });
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        res.json(user);
+      const userId = req.params.id || req.user.id;
+  
+      const user = await User.findOne({ id: userId });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      res.json(user);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to fetch messages" });
+      console.error("Error fetching user:", err);
+      res.status(500).json({ error: "Failed to fetch user" });
     }
-});
+  });
+  
 
 // Get, get a list of skills with optional category filter
 app.get("/api/skills", authMiddleware, async (req, res) => {
