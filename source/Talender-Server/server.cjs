@@ -251,7 +251,7 @@ app.get("/api/categories", async (req, res) => {
 });
 
 // Post, Add a skill to a user's given a skillId and a type, which can be owned or wanted.
-app.post("/api/skills/add", authMiddleware, async (req, res) => {
+app.post("/api/user-skills/add", authMiddleware, async (req, res) => {
     try {
         const { skillId, type } = req.body; // type = 'owned' | 'wanted'
         if (!skillId || !type)
@@ -299,7 +299,6 @@ app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
 });
 
 // Get, get a list of users recommended to current user
-// TODO: Add like/unlike checks for users to recommend
 app.get("/api/recommendedUsers", authMiddleware, async (req, res) => {
     try {
       const userId = req.user.id;
