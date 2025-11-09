@@ -208,14 +208,14 @@ app.get("/api/chats/user", authMiddleware, async (req, res) => {
         curUser,
       };
     });
-        res.json({
-            chats,
-            matches: matchedUsers,
-        });
-    } catch (err) {
-        console.error("Error fetching chats and matches:", err);
-        res.status(500).json({ error: "Failed to fetch chats and matches" });
-    }
+    res.json({
+      chats: formattedChats,
+      matches: matchedUsers,
+    });
+  } catch (err) {
+    console.error("Error fetching chats and matches:", err);
+    res.status(500).json({ error: "Failed to fetch chats and matches" });
+  }
 });
 
 // Get, get all messages of a specific chat, given a chatId
