@@ -16,7 +16,7 @@ const {
     Skill,
     Category,
     Preference,
-    Blacklist
+    Blacklist,
 } = require("./models");
 
 const {
@@ -120,14 +120,18 @@ passport.use(
                 return done(err);
             }
         }
-));
+    )
+);
 
 // Google Login
-app.get("/auth/google",
-passport.authenticate("google", { scope: ["profile", "email"] }));
+app.get(
+    "/auth/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
 
 // Google authentication callback
-app.get("/auth/google/callback", 
+app.get(
+    "/auth/google/callback",
     passport.authenticate("google", {
         failureRedirect: "http://localhost:5173/loginpage",
         session: true,
@@ -164,36 +168,41 @@ app.get("/auth/google/callback",
             console.error("Google OAuth callback error:", err);
             res.status(500).json({ error: "Google login failed" });
         }
-});
+    }
+);
 
 // Get, get all chats for the user
 app.get("/api/chats/user", authMiddleware, async (req, res) => {
     try {
-      const userId = req.user.id;
-      const chats = await Chat.find({ participants: userId }).sort({ updatedAt: -1 });
-      const likes = await Preference.find({ fromUserId: userId, value: 1 });
-      const mutuals = [];
-  
-      for (const like of likes) {
-        const reverse = await Preference.findOne({
-          fromUserId: like.toUserId,
-          toUserId: userId,
-          value: 1,
+        const userId = req.user.id;
+        const chats = await Chat.find({ "participants.id": userId }).sort({
+            updatedAt: -1,
         });
-        if (reverse) mutuals.push(like.toUserId);
-      }
-      // mutuals is the users which liked user.id, if user.id liked them too
-      // Excluding matches that already have a chat
-      const existingIds = new Set(chats.flatMap(c => c.participants));
-      const newMatches = mutuals.filter(id => !existingIds.has(id) && id !== userId);
-      const matchedUsers = await User.find({ id: { $in: newMatches } });
-      res.json({
-        chats,
-        matches: matchedUsers,
-      });
+        const likes = await Preference.find({ fromUserId: userId, value: 1 });
+        const mutuals = [];
+
+        for (const like of likes) {
+            const reverse = await Preference.findOne({
+                fromUserId: like.toUserId,
+                toUserId: userId,
+                value: 1,
+            });
+            if (reverse) mutuals.push(like.toUserId);
+        }
+        // mutuals is the users which liked user.id, if user.id liked them too
+        // Excluding matches that already have a chat
+        const existingIds = new Set(chats.flatMap((c) => c.participants.map(p => p.id)));
+        const newMatches = mutuals.filter(
+            (id) => !existingIds.has(id) && id !== userId
+        );
+        const matchedUsers = await User.find({ id: { $in: newMatches } });
+        res.json({
+            chats,
+            matches: matchedUsers,
+        });
     } catch (err) {
-      console.error("Error fetching chats and matches:", err);
-      res.status(500).json({ error: "Failed to fetch chats and matches" });
+        console.error("Error fetching chats and matches:", err);
+        res.status(500).json({ error: "Failed to fetch chats and matches" });
     }
 });
 
@@ -213,35 +222,36 @@ app.get("/api/messages", authMiddleware, async (req, res) => {
 // Get, get user data from a user Id. Only one user returned
 app.get("/api/user/search-by-id/:id", authMiddleware, async (req, res) => {
     try {
-      const userId = req.params.id;
-  
-      const user = await User.findOne({ id: userId });
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-  
-      res.json(user);
+        const userId = req.params.id;
+
+        const user = await User.findOne({ id: userId });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json(user);
     } catch (err) {
-      console.error("Error fetching user:", err);
-      res.status(500).json({ error: "Failed to fetch user" });
+        console.error("Error fetching user:", err);
+        res.status(500).json({ error: "Failed to fetch user" });
     }
-  });
-  
-  app.get("/api/user/search-by-id/", authMiddleware, async (req, res) => {
+});
+
+// Get, get user data of the user making the request, no parameters required
+app.get("/api/user/search-by-id/", authMiddleware, async (req, res) => {
     try {
-      const userId = req.user.id;
-  
-      const user = await User.findOne({ id: userId });
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-  
-      res.json(user);
+        const userId = req.user.id;
+
+        const user = await User.findOne({ id: userId });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json(user);
     } catch (err) {
-      console.error("Error fetching user:", err);
-      res.status(500).json({ error: "Failed to fetch user" });
+        console.error("Error fetching user:", err);
+        res.status(500).json({ error: "Failed to fetch user" });
     }
-  });
+});
 
 // Get, get a list of skills with optional category filter
 app.get("/api/skills", authMiddleware, async (req, res) => {
@@ -284,24 +294,25 @@ app.get("/api/categories", async (req, res) => {
 
 app.get("/api/categories-with-skills", async (req, res) => {
     try {
-      const categoriesWithSkills = await Category.aggregate([
-        {
-          $lookup: {
-            from: "skills",
-            localField: "slug",
-            foreignField: "categories",
-            as: "skills",
-          },
-        },
-      ]);
-  
-      res.json(categoriesWithSkills);
+        const categoriesWithSkills = await Category.aggregate([
+            {
+                $lookup: {
+                    from: "skills",
+                    localField: "slug",
+                    foreignField: "categories",
+                    as: "skills",
+                },
+            },
+        ]);
+
+        res.json(categoriesWithSkills);
     } catch (err) {
-      console.error("Error fetching categories with skills:", err);
-      res.status(500).json({ error: "Failed to fetch categories with skills" });
+        console.error("Error fetching categories with skills:", err);
+        res.status(500).json({
+            error: "Failed to fetch categories with skills",
+        });
     }
-  });
-  
+});
 
 // Post, Add a skill to a user's given a skillId and a type, which can be owned or wanted.
 app.post("/api/user-skills/add", authMiddleware, async (req, res) => {
@@ -322,7 +333,7 @@ app.post("/api/user-skills/add", authMiddleware, async (req, res) => {
             if (user.interests.includes(skillId)) {
                 return res.status(400).json({ error: "Skill already wanted" });
             }
-            user.interests.push(skillId);        
+            user.interests.push(skillId);
         } else {
             return res.status(400).json({ error: "Invalid type" });
         }
@@ -354,49 +365,52 @@ app.get("/api/user/:id/skills", authMiddleware, async (req, res) => {
 // Get, get a list of users recommended to current user
 app.get("/api/recommendedUsers", authMiddleware, async (req, res) => {
     try {
-      const userId = req.user.id;
-      const user = await User.findOne({ id: userId });
-      if (!user) return res.status(404).json({ error: "User not found" });
-  
-      // find users who disliked the current user
-      const dislikes = await Preference.find({ toUserId: userId, value: -1 }).select("fromUserId");
-      const dislikers = dislikes.map((d) => d.fromUserId);
-  
-      // find potential matches excluding dislikers
-      const potentialMatches = await User.find({
-        id: { $ne: userId, $nin: dislikers },
-        $or: [
-          { interests: { $in: user.skills } },
-          { skills: { $in: user.interests } },
-        ],
-      });
-  
-      // compute and rank matches
-      const rankedUsers = potentialMatches
-        .map((u) => {
-          const skillMatchCount = u.skills.filter((s) =>
-            user.interests.includes(s)
-          ).length;
-          const interestMatchCount = u.interests.filter((i) =>
-            user.skills.includes(i)
-          ).length;
-          const matchScore = skillMatchCount + interestMatchCount;
-  
-          return {
-            ...u.toObject(),
-            matchScore,
-          };
-        })
-        .filter((u) => u.matchScore > 0)
-        .sort((a, b) => b.matchScore - a.matchScore);
-  
-      res.json(rankedUsers);
+        const userId = req.user.id;
+        const user = await User.findOne({ id: userId });
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        // find users who disliked the current user
+        const dislikes = await Preference.find({
+            toUserId: userId,
+            value: -1,
+        }).select("fromUserId");
+        const dislikers = dislikes.map((d) => d.fromUserId);
+
+        // find potential matches excluding dislikers
+        const potentialMatches = await User.find({
+            id: { $ne: userId, $nin: dislikers },
+            $or: [
+                { interests: { $in: user.skills } },
+                { skills: { $in: user.interests } },
+            ],
+        });
+
+        // compute and rank matches
+        const rankedUsers = potentialMatches
+            .map((u) => {
+                const skillMatchCount = u.skills.filter((s) =>
+                    user.interests.includes(s)
+                ).length;
+                const interestMatchCount = u.interests.filter((i) =>
+                    user.skills.includes(i)
+                ).length;
+                const matchScore = skillMatchCount + interestMatchCount;
+
+                return {
+                    ...u.toObject(),
+                    matchScore,
+                };
+            })
+            .filter((u) => u.matchScore > 0)
+            .sort((a, b) => b.matchScore - a.matchScore);
+
+        res.json(rankedUsers);
     } catch (err) {
-      console.error("Error fetching recommended users:", err);
-      res.status(500).json({ error: "Failed to fetch recommended users" });
+        console.error("Error fetching recommended users:", err);
+        res.status(500).json({ error: "Failed to fetch recommended users" });
     }
-  });
-  
+});
+
 // Get, get users with a username that starts with input
 app.get("/api/users/search-by-username/:username", async (req, res) => {
     try {
@@ -470,7 +484,7 @@ app.post("/register", async (req, res) => {
             status,
             location,
             skills: skills || [],
-            interests: interests || []
+            interests: interests || [],
         });
 
         await account.save();
@@ -522,14 +536,36 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// Post, create a new chat, given the other partecipants' Ids
+// Post, create a new chat, given the other participants' Ids
 app.post("/api/chats", authMiddleware, async (req, res) => {
     try {
         const { user1, user2 } = req.body;
         const chatId = [user1, user2].sort().join("_");
         let chat = await Chat.findOne({ chatId });
-        if (!chat)
-            chat = await Chat.create({ chatId, participants: [user1, user2] });
+        if (!chat) {
+            const user1Data = await User.findOne({ id: user1 }).select(
+                "id username avatarLink"
+            );
+            const user2Data = await User.findOne({ id: user2 }).select(
+                "id username avatarLink"
+            );
+
+            chat = await Chat.create({
+                chatId,
+                participants: [
+                    {
+                        id: user1Data.id,
+                        username: user1Data.username,
+                        avatarLink: user1Data.avatarLink,
+                    },
+                    {
+                        id: user2Data.id,
+                        username: user2Data.username,
+                        avatarLink: user2Data.avatarLink,
+                    },
+                ],
+            });
+        }
         // After creating a new chat
         io.to(user1).emit("newChat", chat);
         io.to(user2).emit("newChat", chat);
@@ -604,78 +640,82 @@ app.post("/api/skills/add", authMiddleware, async (req, res) => {
 // Post, sets user liked/unliked by current user + Check matches
 app.post("/api/user/preference", authMiddleware, async (req, res) => {
     try {
-      const fromUserId = req.user.id;
-      const { toUserId, value } = req.body; // value ∈ {-1, 0, 1}
-  
-      if (![ -1, 0, 1 ].includes(value)) {
-        return res.status(400).json({ error: "Invalid preference value" });
-      }
-  
-      if (fromUserId === toUserId) {
-        return res.status(400).json({ error: "Cannot set preference for self" });
-      }
-  
-      // Upsert preference
-      const preference = await Preference.findOneAndUpdate(
-        { fromUserId, toUserId },
-        { value },
-        { upsert: true, new: true }
-      );
-  
-      // check if mutual like
-      let matched = false;
-      if (value === 1) {
-        const reverse = await Preference.findOne({
-          fromUserId: toUserId,
-          toUserId: fromUserId,
-          value: 1,
+        const fromUserId = req.user.id;
+        const { toUserId, value } = req.body; // value ∈ {-1, 0, 1}
+
+        if (![-1, 0, 1].includes(value)) {
+            return res.status(400).json({ error: "Invalid preference value" });
+        }
+
+        if (fromUserId === toUserId) {
+            return res
+                .status(400)
+                .json({ error: "Cannot set preference for self" });
+        }
+
+        // Upsert preference
+        const preference = await Preference.findOneAndUpdate(
+            { fromUserId, toUserId },
+            { value },
+            { upsert: true, new: true }
+        );
+
+        // check if mutual like
+        let matched = false;
+        if (value === 1) {
+            const reverse = await Preference.findOne({
+                fromUserId: toUserId,
+                toUserId: fromUserId,
+                value: 1,
+            });
+            matched = !!reverse;
+        }
+
+        res.json({
+            message: matched
+                ? "Mutual like — match formed!"
+                : value === 1
+                ? "Liked user"
+                : value === -1
+                ? "Disliked user"
+                : "Preference reset",
+            preference,
+            matched,
         });
-        matched = !!reverse;
-      }
-  
-      res.json({
-        message: matched
-          ? "Mutual like — match formed!"
-          : value === 1
-          ? "Liked user"
-          : value === -1
-          ? "Disliked user"
-          : "Preference reset",
-        preference,
-        matched,
-      });
     } catch (err) {
-      console.error("Error setting preference:", err);
-      res.status(500).json({ error: "Failed to set preference" });
+        console.error("Error setting preference:", err);
+        res.status(500).json({ error: "Failed to set preference" });
     }
-  });
-  
+});
+
 // Post, Log out
 app.post("/api/logout", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
-  
-      // get user document
-      const user = await User.findOne({ id: userId });
-      if (!user) return res.status(400).json({ error: "User not found" });
-  
-      // directly update the account token to null
-      const result = await Account.updateOne(
-        { email: user.email },
-        { $set: { token: "" } }
-      );
-      await Blacklist.create({ token: req.headers.authorization.split(" ")[1] });
-      if (result.matchedCount === 0) {
-        return res.status(400).json({ error: "Account not found" });
-      }
-  
-      return res.status(200).json({ message: "Logged out successfully" });
+
+        // get user document
+        const user = await User.findOne({ id: userId });
+        if (!user) return res.status(400).json({ error: "User not found" });
+
+        // directly update the account token to null
+        const result = await Account.updateOne(
+            { email: user.email },
+            { $set: { token: "" } }
+        );
+        await Blacklist.create({
+            token: req.headers.authorization.split(" ")[1],
+        });
+        if (result.matchedCount === 0) {
+            return res.status(400).json({ error: "Account not found" });
+        }
+
+        return res.status(200).json({ message: "Logged out successfully" });
     } catch (err) {
-      console.error("Logout error:", err);
-      return res.status(500).json({ error: "Failed to log out user" });
+        console.error("Logout error:", err);
+        return res.status(500).json({ error: "Failed to log out user" });
     }
 });
-  
+
 // Post, Delete user account and info
 app.post("/api/delete-user", authMiddleware, async (req, res) => {
     const userId = req.user.id;
@@ -684,7 +724,7 @@ app.post("/api/delete-user", authMiddleware, async (req, res) => {
         if (!user) return res.status(400).json({ error: "User not found" });
 
         await Account.deleteOne({ email: user.email });
-        await Chat.deleteMany({ participants: userId });
+        await Chat.deleteMany({ "participants.id": userId });
         await Message.deleteMany({ senderId: userId });
         await Preference.deleteMany({
             $or: [{ fromUserId: userId }, { toUserId: userId }],
@@ -720,7 +760,6 @@ app.post("/api/edit-user", authMiddleware, async (req, res) => {
         res.status(500).json({ error: "Failed to edit user" });
     }
 });
-
 
 // Socket.io implementation, used to run instant messaging
 const http = require("http");

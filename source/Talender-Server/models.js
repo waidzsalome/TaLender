@@ -21,19 +21,28 @@ const CategorySchema = new mongoose.Schema(
 );
 // CHAT
 const ChatSchema = new mongoose.Schema(
-  {
-    chatId: { type: String, required: true, unique: true },
-    participants: { type: [String], required: true }, // array of user UUIDs
-    participants_names: {},
-    partecipants_pics: {},
-    lastMessage: {
-      text: { type: String },
-      senderId: { type: String },
-      createdAt: { type: Date },
+    {
+      chatId: { type: String, required: true, unique: true },
+      participants: [
+        {
+          id: { type: String, required: true }, // UUID of user
+          username: { type: String, required: true },
+          avatarLink: {
+            type: String,
+            default:
+              "https://stock.adobe.com/tw/images/default-avatar-profile-icon-transparent-png-social-media-user-png-icon-whatsapp-dp/589932782",
+          },
+        },
+      ],
+      lastMessage: {
+        text: { type: String },
+        senderId: { type: String },
+        createdAt: { type: Date },
+      },
     },
-  },
-  { timestamps: true }
-);
+    { timestamps: true }
+  );
+  
 // MESSAGE
 const MessageSchema = new mongoose.Schema({
   chatId: { type: String, required: true },
