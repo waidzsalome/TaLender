@@ -196,6 +196,18 @@ app.get("/api/chats/user", authMiddleware, async (req, res) => {
             (id) => !existingIds.has(id) && id !== userId
         );
         const matchedUsers = await User.find({ id: { $in: newMatches } });
+    // Add an `chatPartner` field to each chat object
+    const formattedChats = chats.map((chat) => {
+      // Find the participant who is NOT the current user
+      const chatPartner = chat.participants.find((p) => p.id !== userId);
+      // Find the participant who is current user
+      const curUser = chat.participants.find((p) => p.id === userId);
+      return {
+        ...chat.toObject(), // Convert Mongoose document to plain JS object
+        chatPartner, //  Add the new field for easier frontend access
+        curUser,
+      };
+    });
         res.json({
             chats,
             matches: matchedUsers,
@@ -777,10 +789,34 @@ io.on("connection", (socket) => {
         console.log(`Socket ${socket.id} joined chat ${chatId}`);
     });
 
-    socket.on("leaveChat", (chatId) => {
-        socket.leave(chatId);
-        console.log(`Socket ${socket.id} left chat ${chatId}`);
-    });
+  socket.on("leaveChat", (chatId) => {
+    socket.leave(chatId);
+    console.log(`Socket ${socket.id} left chat ${chatId}`);
+  });
+  // ✅ Listen for message sending events
+  socket.on("sendMessage", async (payload) => {
+    try {
+      const { chatId, senderId, text } = payload;
+      console.log("🔥 Received message:", payload);
+      // Basic input validation
+      if (!chatId || !senderId || !text?.trim()) {
+        console.log("⚠️ Invalid payload, message ignored.");
+        return;
+      }
+      // (Optional) Save the message to the database
+      const newMessage = await Message.create({
+        chatId,
+        senderId,
+        text: text.trim(),
+        createdAt: new Date(),
+      });
+      // ✅ Broadcast the message to all clients in the same chat room (including sender)
+      io.to(chatId).emit("newMessage", newMessage);
+      console.log(`📢 Broadcasted message to chat ${chatId}`);
+    } catch (err) {
+      console.error("❌ Error handling sendMessage:", err);
+    }
+  });
 });
 
 server.listen(port, () => console.log("Server running on port 3000"));
