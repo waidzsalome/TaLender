@@ -21,35 +21,92 @@ import {
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
-import { userList, messageData } from "./mock";
-import { requestMessageList, sendMessage } from "../service/api";
+import { requestMessageList, requestChatsList } from "../service/api";
+import type { Chat, Message } from "../types/types";
+import socket from "./socket";
 
 const ChatPage: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [input, setInput] = useState(String || null);
-  const [curChatUsename, setCurChatUsername] = useState(String || null);
-  const [curUserID, setCurUserID] = useState<number | null>(null);
+  const [chatUserList, setchatUserList] = useState<Chat[]>();
+  const [curUserID, setCurUserID] = useState<string>("");
+  // chat with who
+  const [curChatUsename, setCurChatUsername] = useState<string>("");
+  const [curChatPartnerID, setCurChatPaternerID] = useState<string>("");
+  const [curChatID, setCurChatID] = useState<string>("");
+  const [curChatAvatarLink, setCurChatAvatarLink] = useState<string>("");
+  const [historyMessageList, setHistoryMessageList] = useState<Message[]>([]);
 
-  const handleListItemClick = (index: number) => {
-    setSelectedIndex(index);
-    setCurChatUsername(userList[index].name);
-  };
-  const handleSend = async () => {
-    //simulate data submission
-    console.log(input);
-    // setInput("");
+  const fetchChatUserList = async () => {
     try {
-      const data = await sendMessage(input);
+      const data = await requestMessageList();
       console.log(data);
+      // @ts-expect-error: text
+      setchatUserList(data?.chats as unknown as Chat[]);
+      // @ts-expect-error: text
+      console.log("test", data?.chats?.[0]?.curUser?.id);
+      // @ts-expect-error: text
+      setCurUserID(data?.chats?.[0]?.curUser?.id as un as string);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleListItemClick = (
+    index: number,
+    chatID: string,
+    username: string,
+    avatarLink: string,
+    chatParterID: string
+  ) => {
+    setSelectedIndex(index);
+    setCurChatUsername(username);
+    setCurChatID(chatID);
+    setCurChatAvatarLink(avatarLink);
+    setCurChatPaternerID(chatParterID);
+  };
+  const fetchHistoryMessageList = async () => {
+    try {
+      const data = await requestChatsList(curChatID);
+      console.log(data);
+      setHistoryMessageList(data as unknown as Message[]);
     } catch (error) {
       console.log(error);
     }
   };
 
+  const handleSend = () => {
+    console.log("sendMessage");
+    // if (!input.trim()) return;
+    const messageData = {
+      chatId: curChatID,
+      senderId: curUserID,
+      text: input,
+    };
+    console.log("🚀 Sending message:", messageData);
+    socket.emit("sendMessage", messageData);
+
+    setInput("");
+  };
   useEffect(() => {
-    //simulate set current user
-    requestMessageList();
-    setCurUserID(1);
+    fetchHistoryMessageList();
+  }, [curChatID]);
+  useEffect(() => {
+    socket.emit("joinChat", curChatID);
+
+    // 监听服务器新消息
+    socket.on("newMessage", (msg) => {
+      console.log("💬 Received new message:", msg);
+      setHistoryMessageList((prev) => [...prev, msg]);
+    });
+
+    return () => {
+      socket.emit("leaveChat", curChatID);
+      socket.off("newMessage");
+    };
+  }, [curChatID]);
+
+  useEffect(() => {
+    fetchChatUserList();
   }, []);
   return (
     <Container sx={{ height: "90vh" }}>
@@ -70,19 +127,30 @@ const ChatPage: React.FC = () => {
                   bgcolor: "background.paper",
                 }}
               >
-                {userList.map((user, index) => (
-                  <div key={userList[index].id}>
+                {chatUserList?.map((user, index) => (
+                  <div key={user.chatId}>
                     {index !== 0 && <Divider variant="inset" component="li" />}
                     <ListItemButton
                       alignItems="flex-start"
                       selected={selectedIndex === index}
-                      onClick={() => handleListItemClick(index)}
+                      onClick={() =>
+                        handleListItemClick(
+                          index,
+                          user?.chatId,
+                          user?.chatPartner?.username,
+                          user?.chatPartner?.avatarLink,
+                          user?.chatPartner?.id
+                        )
+                      }
                     >
                       <ListItemAvatar>
-                        <Avatar alt={user.username} src={user.avatarLink} />
+                        <Avatar
+                          alt={user?.chatPartner?.username}
+                          src={user?.chatPartner?.avatarLink}
+                        />
                       </ListItemAvatar>
                       <ListItemText
-                        primary={user.username}
+                        primary={user?.chatPartner?.username}
                         secondary={
                           <React.Fragment>
                             <Typography
@@ -90,7 +158,7 @@ const ChatPage: React.FC = () => {
                               variant="body2"
                               sx={{ color: "text.primary", display: "inline" }}
                             >
-                              {user.lastesnews}
+                              {user.lastMessage.text}
                             </Typography>
                           </React.Fragment>
                         }
@@ -120,10 +188,7 @@ const ChatPage: React.FC = () => {
                       }}
                     >
                       <IconButton sx={{ p: 0 }}>
-                        <Avatar
-                          alt={curChatUsename}
-                          src="/static/images/avatar/2.jpg"
-                        />
+                        <Avatar alt={curChatUsename} src={curChatAvatarLink} />
                       </IconButton>
                       <Typography variant="h6" sx={{ flexGrow: 1 }}>
                         {curChatUsename}
@@ -133,7 +198,7 @@ const ChatPage: React.FC = () => {
                 </Toolbar>
               </AppBar>
               {/* chat content */}
-              {!curChatUsename && (
+              {!curChatID && (
                 <Box
                   sx={{
                     display: "flex",
@@ -160,15 +225,14 @@ const ChatPage: React.FC = () => {
                     alignItems: "center",
                   }}
                 >
-                  (
                   <List
                     sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
                   >
-                    {messageData.map((m) => {
-                      const isMe = m.senderID === curUserID;
+                    {historyMessageList?.map((m) => {
+                      const isMe = m?.senderId !== curChatPartnerID;
                       return (
                         <ListItem
-                          key={m.id}
+                          key={m._id}
                           disableGutters
                           sx={{
                             display: "flex",
@@ -182,8 +246,8 @@ const ChatPage: React.FC = () => {
                             sx={{ maxWidth: "80%" }}
                           >
                             <Avatar
-                              alt={m.sender}
-                              src={m.avatar}
+                              alt={m?.senderId}
+                              src={m?.senderId}
                               sx={{ width: 32, height: 32 }}
                             />
                             <Stack spacing={0.5} sx={{ minWidth: 0 }}>
@@ -203,7 +267,7 @@ const ChatPage: React.FC = () => {
                                 }}
                               >
                                 <Typography variant="body2">
-                                  {m.context}
+                                  {m?.text}
                                 </Typography>
                               </Paper>
 
@@ -214,7 +278,7 @@ const ChatPage: React.FC = () => {
                                   alignSelf: isMe ? "flex-end" : "flex-start",
                                 }}
                               >
-                                {m.time}
+                                {m.createdAt}
                               </Typography>
                             </Stack>
                           </Stack>
@@ -222,7 +286,6 @@ const ChatPage: React.FC = () => {
                       );
                     })}
                   </List>
-                  )
                 </Box>
               )}
               {/* chattext */}
@@ -243,7 +306,7 @@ const ChatPage: React.FC = () => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 />
-                <IconButton color="primary" onClick={handleSend}>
+                <IconButton color="primary" onClick={() => handleSend()}>
                   <SendIcon />
                 </IconButton>
               </Box>

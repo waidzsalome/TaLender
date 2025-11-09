@@ -21,7 +21,7 @@ const Mainpage: React.FC = () => {
   const handleClickSearchButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!filter.trim()) return;
-    return navigate("/tailoredpage?filter=" + filter);
+    return navigate("/tailoredpage?keywords=" + filter);
   };
   const handleClickModifyButton = () => {
     return navigate("/tailoredpage");

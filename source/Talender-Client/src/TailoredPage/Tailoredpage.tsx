@@ -22,13 +22,20 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import { muiColors } from "./constants";
 import type { SelectChangeEvent } from "@mui/material";
-import { requestSkillList, getCategories, addNewSkills } from "../service/api";
+import { useSearchParams } from "react-router";
+import {
+  requestSkillList,
+  getCategories,
+  addNewSkills,
+  addMySkills,
+} from "../service/api";
 import type { Skill, Categories } from "../types/types";
 
 const Tailoredpage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [skillsList, setSkillsList] = useState<Skill[]>();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [selectedItem, setSelectedItem] = useState<string>("");
+  const [selectedItemId, setSelectedItemId] = useState<string>("");
   const [filter, setFilter] = useState("");
   const [keyword, setKeyword] = useState("");
   const [skillCate, setSkillCate] = useState<Categories[]>();
@@ -40,31 +47,60 @@ const Tailoredpage: React.FC = () => {
 
   const handleClick = (event: React.MouseEvent<HTMLElement>, item: string) => {
     setAnchorEl(event.currentTarget);
-    setSelectedItem(item);
+    setSelectedItemId(item);
+  };
+  const getSkillsListFirst = () => {
+    const keywords = searchParams.get("keywords");
+    if (keywords) {
+      setKeyword(keywords);
+    }
+    getSkillsList({
+      keyword,
+    });
   };
 
   const handleApply = () => {
-    getSkillsList();
     console.log({
       keyword,
       filter,
     });
-    //submit data
+    getSkillsList({
+      keyword,
+      filter,
+    });
   };
 
   const handleClose = () => {
     setAnchorEl(null);
-    setSelectedItem("");
+    setSelectedItemId("");
   };
 
-  const handleClickAddIntetrets = () => {
-    console.log(selectedItem);
+  const handleClickAddIntetrets = async () => {
+    console.log(selectedItemId);
     //submit data and refesh page
+    try {
+      const data = await addMySkills({
+        type: "wanted",
+        skillId: selectedItemId,
+      });
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const handleClickAddMySkills = () => {
-    console.log(selectedItem);
+  const handleClickAddMySkills = async () => {
+    console.log(selectedItemId);
     //submit data and refresh page
+    try {
+      const data = await addMySkills({
+        type: "owned",
+        skillId: selectedItemId,
+      });
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
   const handleFilterChange = (e: SelectChangeEvent<string>) => {
     setFilter(e.target.value);
@@ -95,9 +131,9 @@ const Tailoredpage: React.FC = () => {
   };
 
   const open = Boolean(anchorEl);
-  const getSkillsList = async () => {
+  const getSkillsList = async (params: object) => {
     try {
-      const data = await requestSkillList({});
+      const data = await requestSkillList({ ...params });
       setSkillsList(data as unknown as Skill[]);
       console.log(data);
     } catch (error) {
@@ -117,7 +153,7 @@ const Tailoredpage: React.FC = () => {
     return muiColors[Math.floor(Math.random() * muiColors.length)];
   };
   useEffect(() => {
-    getSkillsList();
+    getSkillsListFirst();
     getCategoriesList();
   }, []);
 
@@ -206,12 +242,12 @@ const Tailoredpage: React.FC = () => {
               }}
             />
             <Stack direction="row" flexWrap="wrap" gap={1}>
-              {cat.categories.map((item) => (
+              {cat.skills.map((item) => (
                 <Chip
-                  key={item}
-                  label={item}
+                  key={item.id}
+                  label={item.name}
                   clickable
-                  onClick={(e) => handleClick(e, item)}
+                  onClick={(e) => handleClick(e, item.name)}
                   variant="outlined"
                   sx={{
                     borderColor: "grey.400",

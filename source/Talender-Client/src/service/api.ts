@@ -32,7 +32,7 @@ export const requestMessageList = () => {
 
 //chatting with a  specific (right part of chat page)
 export const requestChatsList = (chatId: string) => {
-  return request.get(`/api/messages?${chatId}`);
+  return request.get(`/api/messages?chatId=${chatId}`);
 };
 
 //send message
@@ -44,8 +44,16 @@ export const sendMessage = (params: string) => {
 
 //tailored page
 //search with keywords and filter(by types)
-export const requestSkillList = (params: object) => {
-  return request.get("/api/skills", params);
+export const requestSkillList = (params: {
+  keywords?: string;
+  filter?: string;
+}) => {
+  const query: Record<string, string> = {};
+
+  if (params.keywords) query.keywords = params.keywords;
+  if (params.filter) query.filter = params.filter;
+
+  return request.get("/api/categories-with-skills", { params: query });
 };
 
 export const getCategories = () => {
