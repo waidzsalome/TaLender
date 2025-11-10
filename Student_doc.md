@@ -4,26 +4,26 @@
 
 # USER STORIES:
 
-1 As a user, I want to create an account, so that I can access the website
-2 As a user, I want to login my account, so that I can use the website
-3 As a user, I want to modify my account's data
-4 As a user, I want to access the main page, so that I can see the entrance of all other pages.
-5 As a user, I want to modify the skills I am offering on the website
-6 As a user, I want to delete my account
-7 As user, I want to select the skills I am interested in
-8 As a user, I want to report inappropriate content, so that it's removed
-9 As a moderator, I want to be able to remove inappropriate content, so that the website is more secure
-10 As a user, I want to be shown skills I'm interested in, so that I can choose one
-11 As a user, I want to filter skills, so that they are more relevant
-12 As a user, I want to sort skills, so that I get the more important ones first
-13 As a user, I want to be presented with accounts one by one, so that I can pick each one by swiping
-14 As a user, I want to be able to instant chatting with accounts I have matched
-15 As a user, I want to receive a notification if I have a "match"
-16 As a moderator, I want to be able to delete accounts, so that the website is more secure
-17 As a user, I want to be able to log out
-18 As a user, I want to share my location if I choose to meet talented people in person.
-19 As a user, I want to be able to edit my interests and filters
-20 As a user, I want to be able to message other users, so that I can meet them.
+1. As a user, I want to create an account, so that I can access the website
+2. As a user, I want to login my account, so that I can use the website
+3. As a user, I want to modify my account's data
+4. As a user, I want to access the main page, so that I can see the entrance of all other pages.
+5. As a user, I want to modify the skills I am offering on the website
+6. As a user, I want to delete my account
+7. As user, I want to select the skills I am interested in
+8. As a user, I want to report inappropriate content, so that it's removed
+9. As a moderator, I want to be able to remove inappropriate content, so that the website is more secure
+10. As a user, I want to be shown skills I'm interested in, so that I can choose one
+11. As a user, I want to filter skills, so that they are more relevant
+12. As a user, I want to sort skills, so that I get the more important ones first
+13. As a user, I want to be presented with accounts one by one, so that I can pick each one by swiping
+14. As a user, I want to be able to instant chatting with accounts I have matched
+15. As a user, I want to receive a notification if I have a "match"
+16. As a moderator, I want to be able to delete accounts, so that the website is more secure
+17. As a user, I want to be able to log out
+18. As a user, I want to share my location if I choose to meet talented people in person.
+19. As a user, I want to be able to edit my interests and filters
+20. As a user, I want to be able to message other users, so that I can meet them.
 
 # CONTAINERS:
 
@@ -195,25 +195,43 @@ The application runs within a single Express-based Node.js container, organized 
 
 ### USER STORIES:
 
+1. As a user, I want to create an account, so that I can access the website
+2. As a user, I want to login my account, so that I can use the website
+3. As a user, I want to modify my account's data
+4. As a user, I want to access the main page, so that I can see the entrance of all other pages.
+5. As a user, I want to modify the skills I am offering on the website
+6. As a user, I want to delete my account
+7. As user, I want to select the skills I am interested in
+8. As a user, I want to report inappropriate content, so that it's removed
+9. As a user, I want to be shown skills I'm interested in, so that I can choose one
+10. As a user, I want to filter skills, so that they are more relevant
+11. As a user, I want to sort skills, so that I get the more important ones first
+12. As a user, I want to be presented with accounts one by one, so that I can pick each one by swiping
+13. As a user, I want to be able to instant chatting with accounts I have matched
+14. As a user, I want to be able to log out
+15. As a user, I want to share my location if I choose to meet talented people in person.
+16. As a user, I want to be able to edit my interests and filters
+17. As a user, I want to be able to message other users, so that I can meet them.
+
 ### PORTS:
 
 5173:5173
 
 ### DESCRIPTION:
 
-- Provides the user interface for the Talender application for both public and authenticated users.
+Provides the main interactive interface of the Talender front end application, enabling both public and authenticated users to explore the platform, and allowing registered and authenticated users to manage their profiles, discover interests, match with other people, and communicate in real time.
 
 ### PERSISTANCE EVALEVALUATION
 
-The Client-FE container does not include a database.
+The Talender_Client-FE container does not include a database.
 
 ### EXTERNAL SERVICES SERVICES CONNECTIONS
 
-The Farmer-FE container connect to Talender-BE using Restful API and Socket.
+The Talender_Client-FE container connect to Talender-BE using Restful API and Socket.
 
 ### MICROSERVICES:
 
-#### MICROSERVICE: client-fe
+#### MICROSERVICE: Talender_Client-FE
 
 - TYPE: frontend
 - DESCRIPTION: This microservice serves the main user interface for the customer.
@@ -224,10 +242,10 @@ The Farmer-FE container connect to Talender-BE using Restful API and Socket.
 
 - **Framework and Tools**
 
-  - **React** – Provides a component-based framework for building dynamic, reusable, and maintainable user interfaces.
+  - **React:** Provides a component-based framework for building dynamic, reusable, and maintainable user interfaces.
 
-  - **Vite** – A modern build tool offering fast development with hot module replacement (HMR) and efficient production bundling.
-  - **Material UI (MUI)** – Ensures a consistent, accessible, and responsive design system aligned with modern UI standards.
+  - **Vite:** A modern build tool offering fast development with hot module replacement (HMR) and efficient production bundling.
+  - **Material UI (MUI):** Provides ready-to-use React components and responsive design aligned with modern UI standards.
 
 - State and Data Management
 
@@ -235,38 +253,27 @@ The Farmer-FE container connect to Talender-BE using Restful API and Socket.
 
 - Network Communication
 
-  - **Axios** handles RESTful communication with backend microservices. Includes **interceptors** for attaching tokens and handling expired token s.
-  - **Socket.io** enables real-time bidirectional communication for the chat page.
+  - **Axios:** handles RESTful communication with backend. Includes **interceptors** for attaching tokens and handling expired tokens.
+  - **Socket. io:** enables real-time, bidirectional communication for the chatpage over the WebSocket protocol, ensuring low-latency message delivery.
 
 - Authentication
 
-  - Integrated **Google OAuth 2.0** for secure user login and token-based session handling.
-
-- Environment and Deployment
-
-  - **Development:** Vite Dev Server with hot module replacement (HMR), API mocking, and linting.
-  - **Production:** Code-splitting and optimization, built static assets served via **Nginx** in a **Docker container**.
-  - Supports environment-based configuration through `.env` files.
-
-6. **Infrastructure**
-   - Designed as an independent **frontend microservice**.
-   - Communicates asynchronously with distributed backend containers (Auth, User, Interest, Matching, Chat).
-   - Fully compatible with **Infrastructure as Code (IaC)** practices.
+  - Integrated a Google Log-In entry point that redirects users to the backend’s OAuth 2.0 flow for authentication and token management.
 
 ### Front-end ARCHITECTURE:
 
-The frontend microservice follows a layered architecture to ensure modularity, maintainability, and scalability.  
-Each layer is responsible for a specific aspect of the client-side system.
+The frontend microservice follows a layered architecture to achieve modularity, maintainability, and scalability.  
+Each layer is responsible for a specific aspect of the client-side application.
 
 1. **Business Layer**
 
    - Contains all main UI pages: **MainPage**, **ProfilePage**, **ModifySkills**, **SwipePage**, and **ChatPage**.
-   - Includes shared UI components (Header, Footer) and third-party libraries (Material UI).
+   - Includes common UI components (Header, Footer) and third-party libraries (Material UI).
    - Manages routing and navigation with **public** and **protected routes**, ensuring secure access control.
 
 2. **Data Layer**
 
-   - Manages data flow and UI state through **React Hooks** and **Contexts**.
+   - Manages data flow and UI state through **React Hooks**.
    - Synchronizes local and remote data, handling updates triggered by user actions or API responses.
    - Provides reactive rendering and state isolation for each component.
 
@@ -274,29 +281,26 @@ Each layer is responsible for a specific aspect of the client-side system.
 
    - Responsible for all communication with backend services.
    - Uses **Axios** for RESTful requests and custom interceptors for token injection and error handling.
-   - Implements **Socket.io** for real-time bidirectional communication in the chat module.
-   - Ensures seamless integration with distributed backend microservices (Auth, User, Interest, Matching, Chat).
+   - Implements **Socket. io** for real-time bidirectional communication in the chat page.
 
 4. **Build Layer (Vite)**
 
-   - **Development Mode:** Provides fast HMR (Hot Module Replacement), linting, and API mocking for local testing.
+   - **Development Mode:** Provides fast HMR (Hot Module Replacement), linting and Env config for local testing.
    - **Production Mode:** Performs code splitting, asset optimization, and containerized deployment with **Docker**.
-   - Environment-based configuration enables easy transitions between dev/test/prod environments.
+   - Environment-based configuration enables easy transitions between dev/prod environments.
 
 5. **Integration with Browser and Backend**
    - The system runs entirely in the browser, delivering dynamic HTML/CSS/JS content.
-   - Interacts asynchronously with backend APIs, authentication gateways, and WebSocket servers.
+   - Interacts asynchronously with backend APIs and WebSocket servers.
    - This separation ensures independent development, deployment, and scaling of frontend and backend components.
 
 - ROUTES and PAGES:
 
-  | Name/Routers   | Description                                                                                                                                                                                                                     | Related BE Modules | User Stories |
-  | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------ |
-  | /mainpage      | The public landing page of the application. It introduces the application, allows users to search their interests, and provides navigation to other main features.                                                              |                    |              |
-  | /loginrequired | The access control page shown when a user is not loged in, lacks permission, or their token has expired. It prompts the user to log in through Google or return to the homepage.                                                |                    |              |
-  | /profilepage   | Displays and manages the user’s personal information. Users can edit their name, age, location and log out, or delete their account. And when user want to edit their interests and talents, guide user to jump to tailoredpage |                    |              |
-  | /swipepage     | Displays user cards based on shared interests or skills. Users can view brief profiles and decide to connect or skip by swiping or clicking “Yes”/“No.” The matching logic is driven by user interests and location data.       |                    |              |
-  | /tailoredpage  | Displays categorized lists of interests and talents. Users can search through filter and keywords, click existing tags to add them to their profile, or create a new skill if their interests are not listed.                   |                    |              |
-  | /chatpage      | Users can select a matched contact to view conversation history and exchange messages through a WebSocket connection.                                                                                                           |                    |              |
-
-## <other containers>
+  | Name/Routers   | Description                                                                                                                                                                                                                     | communicate with BE                                                                                            | User Stories    |
+  | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------- |
+  | /mainpage      | The public landing page of the application. It introduces the application, allows users to search their interests, and provides navigation to other main features.                                                              |                                                                                                                | 4               |
+  | /loginrequired | The access control page shown when a user is not loged in, lacks permission, or their token has expired. It prompts the user to log in through Google or return to the homepage.                                                | GET /auth/google                                                                                               |                 |
+  | /profilepage   | Displays and manages the user’s personal information. Users can edit their name, age, location and log out, or delete their account. And when user want to edit their interests and talents, guide user to jump to tailoredpage | GET /api/user/search-by-id<br>POST /api/edit-user<br> POST /api/delete-user <br>POST /api/logout               | 1,2,3,6,17,18   |
+  | /swipepage     | Displays user cards based on shared interests or skills. Users can view brief profiles and decide to connect or skip by swiping or clicking “Yes”/“No.” The matching logic is driven by user interests and location data.       | POST /api/recommendedUsers<br> POST /api/user/preference                                                       | 8,13            |
+  | /tailoredpage  | Displays categorized lists of interests and talents. Users can search through filter and keywords, click existing tags to add them to their profile, or create a new skill if their interests are not listed.                   | GET /api/categories-with-skills <br>GET /api/categories <br>POST /api/user-skills/add <br>POST /api/skills/add | 5,7,10,11,12,19 |
+  | /chatpage      | Users can select a matched contact to view conversation history and exchange messages through a WebSocket connection.                                                                                                           | GET /api/chats/user <br>GET /api/messages?chatId=${chatId} <br>socket.on()<br>socket.emit()                    | 14              |

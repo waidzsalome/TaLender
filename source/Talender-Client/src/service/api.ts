@@ -35,13 +35,6 @@ export const requestChatsList = (chatId: string) => {
   return request.get(`/api/messages?chatId=${chatId}`);
 };
 
-//send message
-export const sendMessage = (params: string) => {
-  return request.post("/api/messages/send", params);
-};
-
-//how to receive?
-
 //tailored page
 //search with keywords and filter(by types)
 export const requestSkillList = (params: {
