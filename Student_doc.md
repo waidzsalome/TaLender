@@ -74,10 +74,10 @@ Google OAuth 2.0: for third-party authentication.
 - TYPE: Backend module (Express + Passport + JWT).
 - DESCRIPTION: Handles user authentication and authorization.
 - TECHNOLOGICAL SPECIFICATION:
-  This module is developed in JavaScript. It uses the following technologies: - bcrypt: Allows for creating and storing encrypted passwords, using salt as a deterrant to dictionary attacks. - jwt: Used for Json Web Tokens, which allow secure authentication. - passport: Allows for quick and reliable google authentication.
-  In addition to this, a middleware componenent, using the same technologies, secures all protected routes by verifying JWTs and checking against a Blacklist collection in MongoDB.
-  Revoked tokens (e.g., after logout) are stored and blocked from reuse, ensuring session invalidation and enhanced security.
-  This mechanism prevents unauthorized access even if a token is stolen or manually reused.
+  This module is developed in JavaScript. It uses the following technologies: 
+  - bcrypt: Allows for creating encrypted passwords, using salt as a deterrant to dictionary attacks. 
+  - jwt: Used for Json Web Tokens, which instanciate user's login sessions. 
+  - passport: Allows for quick and reliable authentication.
 
 - SERVICE ARCHITECTURE:
   The authentication module exposes REST endpoints via Express and integrates with Passport for both local and Google OAuth strategies.
@@ -111,7 +111,6 @@ Provides identity verification for chat and front-end modules through middleware
 - SERVICE ARCHITECTURE:
   Initializes a single Mongoose connection to MongoDB Atlas and defines all models.
   Uses UUIDv4 for non-sequential IDs to avoid collisions and ensure cross-collection uniqueness.
-  Indexes are configured on fields such as email, id, and chatId to improve query performance.
   Inter-module communication:
   Consumed by all other modules for CRUD operations and lookups.
   Exposes no HTTP endpoints; acts as an internal dependency.
@@ -126,10 +125,11 @@ No endpoints are necessary for this module
 - DESCRIPTION: Manages WebSocket-based real-time communication.
 - TECHONOLOGICAL SPECIFICATION:
   This module uses socket.io, a JavaScript library which allows to instantiate a pool of real-time rooms, which allow users to send and receive messages in real time using events instead of direct messages.
-  This implementation avoids having to periodically fetch chat data, since whenever a new message is sent, an event is generated for all the users in the chat room.
 - SERVICE ARCHITECTURE:
-  Hybrid system combining Express endpoints and Socket.io for real-time messaging. When a message is sent via POST /api/messages/send, the module: - Stores the message in the Message collection using database. - Emits a newMessage event through Socket.io to all connected users in that chat room. - Updates the corresponding Chat document’s last_message field.
-  Clients join rooms identified by chatId.
+  Hybrid system combining Express endpoints and Socket.io for real-time messaging. When a message is sent via POST /api/messages/send, the module: 
+  - Stores the message in the Message collection using database. 
+  - Emits a newMessage event through Socket.io to all connected users in that chat room. 
+  - Updates the corresponding Chat document’s last_message field.
   This architecture ensures low-latency communication while persisting all messages to MongoDB for reliability.
   Inter-module communication:
   Relies on auth middleware for socket authentication.

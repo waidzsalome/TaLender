@@ -269,8 +269,13 @@ app.get("/api/user/search-by-id/", authMiddleware, async (req, res) => {
 app.get("/api/skills", authMiddleware, async (req, res) => {
     try {
         const { category } = req.query;
+        const { search } = req.query;
         const filter = {};
 
+        if (search)  {
+            filter.name = { $regex: search, $options: "i" };
+            
+        }
         if (category) {
             filter.categories = category;
         }
