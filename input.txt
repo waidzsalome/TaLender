@@ -1,23 +1,29 @@
-# System description
+# SYSTEM DESCRIPTION
 
-# USER STORIES:
-1 As a user, I want to create an account, so that I can access the website
-2 As a user, I want to login my account, so that I can use the website
-3 As a user, I want to modify my account's data
-4 As a user, I want to access the main page, so that I can see the entrance of all other pages.
-5 As a user, I want to modify the skills I am offering on the website
-6 As a user, I want to delete my account
-7 As user, I want to select the skills I am interested in
-8 As a user, I want to report inappropriate content, so that it's removed
-9 As a moderator, I want to be able to remove inappropriate content, so that the website is more secure
-10 As a user, I want to be shown skills I'm interested in, so that I can choose one
-11 As a user, I want to filter skills, so that they are more relevant
-12 As a user, I want to sort skills, so that I get the more important ones first
-13 As a user, I want to be presented with accounts one by one, so that I can pick each one by swiping
-14 As a user, I want to be able to instant chatting with accounts I have matched
-15 As a user, I want to receive a notification if I have a "match"
-16 As a moderator, I want to be able to delete accounts, so that the website is more secure
-17 As a user, I want to be able to log out
-18 As a user, I want to share my location if I choose to meet talented people in person.
-19 As a user, I want to be able to edit my interests and filters
-20 As a user, I want to be able to message other users, so that I can meet them.
+Talender is a platform to offer, discover, and connect around skills. Users create a profile, list the skills they offer, and select the skills they seek. 
+A discovery feed returns recommended users/skills; users can like/dislike others and a match is formed upon mutual like. Matched users can chat. 
+
+
+Note: User stories below are the authoritative requirements; some (e.g., moderation, notifications, location) are partially or not yet implemented in code and will be planned for upcoming sprints.
+
+# USER STORIES
+1) As a user, I want to create an account, so that I can access the platform
+2) As a user, I want to log in to my account, so that I can use the platform
+3) As a user, I want to modify my account's data
+4) As a user, I want to access the main page, so that I can see the entrance of all other pages.
+5) As a user, I want to modify the skills I am offering on the platform
+6) As a user, I want to delete my account
+7) As user, I want to select the skills I am interested in
+8) As a user, I want to report inappropriate content, so that it's removed
+9) As a moderator, I want to be able to remove inappropriate content, so that the platform is more secure
+10) As a user, I want to be shown skills I'm interested in, so that I can choose one
+11) As a user, I want to filter skills, so that they are more relevant
+12) As a user, I want to sort skills, so that I get the more important ones first
+13) As a user, I want to be presented with accounts one by one, so that I can pick each one by swiping
+14) As a user, I want to be able to instant chat with accounts I have matched
+15) As a user, I want to receive a notification if I have a match
+16) As a moderator, I want to be able to delete accounts, so that the platform is more secure
+17) As a user, I want to be able to log out
+18) As a user, I want to share my location if I choose to meet talented people in person.
+19) As a user, I want to be able to edit my interests and filters
+20) As a user, I want to be able to message other users, so that I can meet them.
