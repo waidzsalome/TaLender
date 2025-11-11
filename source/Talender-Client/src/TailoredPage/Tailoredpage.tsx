@@ -123,11 +123,12 @@ const Tailoredpage: React.FC = () => {
         skillName: newSkillName,
       });
       console.log(data);
+      handleApply();
+      handleCloseDialog();
     } catch (error) {
       console.log(error);
     }
     //submit data
-    handleCloseDialog();
   };
 
   const open = Boolean(anchorEl);
@@ -357,7 +358,7 @@ const Tailoredpage: React.FC = () => {
               label="Type"
             >
               {skillCate?.map((item) => (
-                <MenuItem id={item.name} value={item.name}>
+                <MenuItem id={item.slug} value={item.slug}>
                   {item.name}
                 </MenuItem>
               ))}
