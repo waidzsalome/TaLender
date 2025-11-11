@@ -1,0 +1,128 @@
+{
+  "sets": [
+    {
+      "set_id": 1,
+      "set_name": "Authentication & Session",
+      "user_stories": [
+        1,
+        2,
+        17
+      ],
+      "links": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "db": true
+    },
+    {
+      "set_id": 2,
+      "set_name": "Account & Profile",
+      "user_stories": [
+        3,
+        6,
+        18
+      ],
+      "links": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "db": true
+    },
+    {
+      "set_id": 3,
+      "set_name": "Skills & Interests Management",
+      "user_stories": [
+        5,
+        7,
+        19
+      ],
+      "links": [
+        2,
+        4,
+        5
+      ],
+      "db": true
+    },
+    {
+      "set_id": 4,
+      "set_name": "Discovery & Search",
+      "user_stories": [
+        10,
+        11,
+        12
+      ],
+      "links": [
+        1,
+        3,
+        5,
+        6
+      ],
+      "db": true
+    },
+    {
+      "set_id": 5,
+      "set_name": "Preferences & Matchmaking (Swipe)",
+      "user_stories": [
+        13,
+        15
+      ],
+      "links": [
+        3,
+        4,
+        6
+      ],
+      "db": true
+    },
+    {
+      "set_id": 6,
+      "set_name": "Chat & Messaging",
+      "user_stories": [
+        14,
+        20
+      ],
+      "links": [
+        1,
+        5,
+        7
+      ],
+      "db": true
+    },
+    {
+      "set_id": 7,
+      "set_name": "Moderation & Reporting",
+      "user_stories": [
+        8,
+        9,
+        16
+      ],
+      "links": [
+        1,
+        4,
+        6
+      ],
+      "db": true
+    },
+    {
+      "set_id": 8,
+      "set_name": "Navigation & Main Page",
+      "user_stories": [
+        4
+      ],
+      "links": [
+        1,
+        2,
+        4
+      ],
+      "db": false
+    }
+  ]
+}
