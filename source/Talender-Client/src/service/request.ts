@@ -16,7 +16,19 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   (response) => response.data,
-  (error) => Promise.reject(error)
+  (error) => {
+    // 判断是否是 401 错误（未授权）
+    if (error.response && error.response.status === 401) {
+      console.warn("Invaid user token");
+
+      // 清除本地 token（可选）
+      localStorage.removeItem("token");
+
+      // 使用浏览器跳转
+      window.location.href = "/loginrequired";
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default request;

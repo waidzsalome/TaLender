@@ -38,13 +38,13 @@ export const requestChatsList = (chatId: string) => {
 //tailored page
 //search with keywords and filter(by types)
 export const requestSkillList = (params: {
-  keywords?: string;
+  keyword?: string;
   filter?: string;
 }) => {
   const query: Record<string, string> = {};
 
-  if (params.keywords) query.keywords = params.keywords;
-  if (params.filter) query.filter = params.filter;
+  if (params.keyword) query.search = params.keyword;
+  if (params.filter) query.category = params.filter;
 
   return request.get("/api/categories-with-skills", { params: query });
 };

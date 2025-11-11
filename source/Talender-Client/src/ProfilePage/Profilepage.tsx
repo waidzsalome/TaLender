@@ -53,7 +53,7 @@ const Profilepage: React.FC = () => {
   const handleClickLogoutButton = async () => {
     console.log("click logout");
     try {
-      const res = await requestLogOut({});
+      const res = await requestLogOut();
       console.log(res);
     } catch (error) {
       console.log(error);
@@ -62,7 +62,7 @@ const Profilepage: React.FC = () => {
   const handleClickDeleteButton = async () => {
     console.log("click delete");
     try {
-      const res = await deleteAccount({});
+      const res = await deleteAccount();
       console.log(res);
     } catch (error) {
       console.log(error);
@@ -82,8 +82,10 @@ const Profilepage: React.FC = () => {
     };
   const handleClickConfirmButton = async () => {
     try {
-      const { data } = await updateUserInfo(userInfo);
-      console.log(data);
+      const data = await updateUserInfo(userInfo);
+      // @ts-expect-error: text
+      setUserInfo(data?.user);
+      seteditable(false);
     } catch (error) {
       console.log(error);
     }
@@ -129,11 +131,11 @@ const Profilepage: React.FC = () => {
               >
                 <Avatar
                   alt="User Avatar"
-                  src={userInfo.avatarLink}
+                  src={userInfo?.avatarLink}
                   sx={{ width: 100, height: 100 }}
                 />
                 <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  {`${userInfo.first_name} ${userInfo.last_name}`}
+                  {`${userInfo?.first_name} ${userInfo?.last_name}`}
                 </Typography>
                 <Divider sx={{ width: "80%", my: 2 }} />
               </Box>
@@ -315,7 +317,7 @@ const Profilepage: React.FC = () => {
                 </Box>
 
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {userInfo?.interests.map((interest) => (
+                  {userInfo?.interests?.map((interest) => (
                     <Chip
                       key={interest}
                       label={interest}
