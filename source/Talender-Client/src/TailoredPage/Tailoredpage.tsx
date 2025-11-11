@@ -205,7 +205,7 @@ const Tailoredpage: React.FC = () => {
           >
             <MenuItem value="">None</MenuItem>
             {skillCate?.map((item) => (
-              <MenuItem value={item.name}>{item.name}</MenuItem>
+              <MenuItem value={item.slug}>{item.name}</MenuItem>
             ))}
           </Select>
         </FormControl>
