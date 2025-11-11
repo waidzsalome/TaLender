@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./Talender-Server
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./Talender-Server/.env
+    working_dir: /app
+    command: npm start
+
+  frontend:
+    build: ./Talender-Client
+    ports:
+      - "5173:5173"
+    working_dir: /app
+    command: npm run dev
+    depends_on:
+      - backend

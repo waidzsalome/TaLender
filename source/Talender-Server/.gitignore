@@ -14,3 +14,4 @@ yarn-error.log*
 
 # Optional: only ignore package-lock if you want to regenerate it freely
 # package-lock.json
+.env

@@ -1,6 +1,6 @@
 const { Blacklist } = require("../models");
 const jwt = require("jsonwebtoken");
-const { SECRET_KEY } = require("../secret");
+const { SECRET_KEY } = process.env;
 
 
 const authMiddleware = async (req, res, next) => {
